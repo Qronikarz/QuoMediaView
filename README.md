@@ -11,7 +11,7 @@ At first it was named qview, but not long ago I googled it and it was already us
 * doesn't need a server, it's only front-end
 * doesn't modify images
 * doesn't use cookies
-* runs from USB memory sticks (though I don't recommend adding some gigantic 8K resolution photos on USB 2.0 memory stick, be realistic)
+* runs from USB memory sticks (though I don't recommend adding some gigantic 8K resolution photos on USB 2.0 memory stick, be realistic) (you also need to have the browser installed or available on pendrive since this is just a .html site)
 * displays all of the images in database in big view allowing you to quickly browse every added file even if it's a video
 * displays all search results in one grid with different colored borders for different types: photos, videos and animations
 * pseudo dynamic changes of nearly everything in the database meaning you can quickly see differences
