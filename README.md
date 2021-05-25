@@ -13,6 +13,7 @@ At first it was named qview, but not long ago I googled it and it was already us
 * doesn't use cookies
 * runs from USB memory sticks (though I don't recommend adding some gigantic 8K resolution photos on USB 2.0 memory stick, be realistic)
 * displays all of the images in database in big view allowing you to quickly browse every added file even if it's a video
+* displays all search results in one grid with different colored borders for different types: photos, videos and animations
 * pseudo dynamic changes of nearly everything in the database meaning you can quickly see differences
 * searching by tags or blocking by tags
 * displaying single files on another page with a rotate buttons working even with videos
@@ -29,6 +30,7 @@ When loading the site you are presented with 2 choices:
 To add new files you can drag and drop them on the section on the right of the menu or go to options and use the file input. Then the files are automatically added with folder id "1" which you must only type once in media editing window so I highly recommend only using 1 folder since then you can be certain there are no duplicates. The support for more folders is available but then you have to manually pick folder for every file which is somehow made more easy by adding it to datalist.
 One of the big features is the search bar where you can type tag names or click them with mouse through menu or datalist inside (it's also the best way to search for a tag). It will only display files that have all the tags that you searched for. By click on [-] sign you can add a tag to block or type it yourself, it will block or images that have this tag.
 # Important Tips
+* the most important tag that you must choose are "picture" "video" or "animated" tags. They are used to add borders to the grid and in some cases even display the file since video needs different tags.
 * DO NOT EVER USE \ " ' symbols because they break JSON structure. There's probably more signs that do the same, but I know only these
 * If you want to create a new tag just remember to replace spaces (" ") with underscores ("_"). Only then it will work with search. If you made a mistake just go to tag editor and find it.
 * As I wrote earlier I recommend keeping files in one folder
