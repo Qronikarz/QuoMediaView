@@ -37,6 +37,8 @@ One of the big features is the search bar where you can type tag names or click 
 * If you decide to use automatic loading which I also plan to use myself, I suggest keeping a backup in different place. You can even encrypt it or throw it into password protected archive. When I'll be updating them
 # Compatibility
 I started it when I still was using windows 7, but most of it was finished on linux mint. In both cases the Firefox Browser was used. You can look at the images in screens folder to see how it's supposed to look on a 1920x1080 screen on my computer. If you have different OS or different browser you can share if everything works. Maybe I'll even consider fixing stuff that's not working.
+# Demonstration database
+All of the files in demo database were supposed to be public domain. I even created some and also release them in public domain. If however you are the owner of one of the files please report it so I can remove it.
 # Contributions
 I will generally not accept any code or pull requests. I want to keep this all to myself so I can relicense it or close it whenever I feel like. You can however fork it and make your own, just remember to make it compatible with current JSON database so your future image board users don't need to waste more time creating a new DB from scratch
 # License
