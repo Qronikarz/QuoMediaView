@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html>
+
+	<head>
+		<!-- 
+		for image board updates go to https://github.com/MrQuerter/QuoMediaView
+		-->
+		<meta charset="UTF-8" />
+		<link rel="icon" href="qmvfiles/quomediaview.svg" type="image/svg+xml" />
+		<title>QuoMediaView</title>
+		<link rel="stylesheet" href="qmvfiles/styles.css" />
+		<style>
+		</style>
+		<style id="easystylechange_searchbar"></style>
+		<style id="easystylechange_blockbar"></style>
+		<style id="easystylechange_b_picture"></style>
+		<style id="easystylechange_b_animated"></style>
+		<style id="easystylechange_b_video"></style>
+		<style id="easystylechange_b_edit"></style>
+	</head>
+	
+	<body>
+		<div id="box">
+
+			<div id="menu">
+				
+				<div id="menucontrols">
+					<div id="qviewlogo">
+						<a href="QView.html" id="qvlogotext" title="QuoMediaView">QMV</a>
+						<span id="savenotifier">&#x26A0;!</span>
+					</div>
+
+					<div id="settings">
+						<form onsubmit="searching(document.getElementById('searchbar').value); return false" id=
+						"search">
+							<input list="availabletags" id="searchbar" /> <input type="submit" value="&#x2192;" />
+						</form>
+						<form onsubmit="banning(document.getElementById('banbar').value); return false" id="ban">
+							<input list="availabletags" id="banbar" /> <input type="submit" value="&#x2192;" />
+						</form>
+						<input type="button" id="transl_s_edit" onclick="editinterface()" value="Edit" title="edit"/>
+						<input type="button" id="transl_s_options" onclick="editoptions()" value="Options" title="options"/>
+						<datalist id="availabletags"></datalist>
+					</div>
+					
+				</div>
+				
+				<div id="menulist">
+					<ul id="tagslist"></ul>
+				</div>
+				
+			</div>
+			
+			<div id="singlemediaview">
+				<div id="mainframe">
+				</div>
+			</div>
+			
+			<div id="optionsedit">
+				<button onclick="backtomain()">Close</button>
+				<button onclick="edittags()">Edit tags</button><br />
+				<label for="fileadder"><span id="transl_sp_op_addfiles">Add new files</span>: </label><input type="file" onchange="mediauploadinput()" id="fileadder" multiple/> 
+				
+				<br /><br />
+				
+				<form onsubmit="saver_settings(); return false" id="settingsform">
+					
+					<label for="sett_thumb"><span id="transl_sp_op_showthumbs">Show thumbnails</span>: </label>
+					<input type="checkbox" id="sett_thumb" /><br />
+					
+					<label for="sett_maxgrid"><span id="transl_sp_op_maxnumber">Max files on one page</span>: </label>
+					<input type="number" id="sett_maxgrid" value="28" min="1" /><br />
+					
+					<label for="sett_infoicon"><span id="transl_sp_op_infoicon">Info icon</span>: </label>
+					<input type="text" id="sett_infoicon" value="&#x2609;"/><br />
+					
+					<label for="sett_searchbar"><span id="transl_sp_op_searchbarcolor">Color of search bar</span>: </label>
+					<input type="color" id="sett_searchbar" value="#90ee90" /><br />
+					
+					<label for="sett_blockbar"><span id="transl_sp_op_blockbarcolor">Color of block bar</span>: </label>
+					<input type="color" id="sett_blockbar" value="#ffc0cb" /><br /><br />
+					
+					<span id="transl_sp_op_bordercolors">File borders colors</span>:<br />
+					<label for="sett_b_picture"><span id="transl_sp_op_borderpicture">Picture border</span>: </label>
+					<input type="color" id="sett_b_picture" value="#808080" /><br />
+					<label for="sett_b_animated"><span id="transl_sp_op_borderanimated">Animated border</span>: </label>
+					<input type="color" id="sett_b_animated" value="#ffa500" /><br />
+					<label for="sett_b_video"><span id="transl_sp_op_bordervideo">Video border</span>: </label>
+					<input type="color" id="sett_b_video" value="#0000ff" /><br />
+					<label for="sett_b_editing"><span id="transl_sp_op_borderediting">Editing border</span>: </label>
+					<input type="color" id="sett_b_editing" value="#800080" /><br /><br />
+					
+					<label for="sett_baselocation"><span id="transl_sp_op_virtualplace">Virtual location</span>: </label>
+					<input type="text" id="sett_baselocation" value=""/><br /><br />
+					
+					
+					<input type="submit" value="Save changes" />
+				</form><br /><br /><hr />
+				<button onclick="tagsorter()">Sort all tags</button><button onclick="resetsettings()">Reset default settings</button><br />
+				<button onclick="createnewqmvdb()">Export empty QMV DB</button><br />
+				<button onclick="saveqmv()">Export QMV DB</button>
+				<input type="text" id="jsonsaveholder"/>
+				
+				
+			</div>
+			
+			<div id="mediaedit">
+				<button onclick="backtomain()">Close</button>
+				<br /><br />
+				
+				<div id="miniviewbox">
+					<div id="miniviewboxinside">
+						<div id="mediacontrols">
+							<button onclick="mvb_prev()">Previous</button>
+							<button onclick="mvb_next()">Next</button>
+						</div>
+						<div id="mediamini"></div>
+					</div>
+				</div><br />
+				<span id="">Path</span>:<br />
+				<datalist id="me_availablefolders"></datalist>
+				<input list="me_availablefolders" id="me_foldermain" onchange="filesettupdate('me_path','main')" placeholder="folder/"/> <input type="text" id="me_namemain" onchange="filesettupdate('me_filename','main')" placeholder="file.type" /> <input type="file" id="me_nameupload" onchange="nameselect('main')" /><br />
+				<span id="">Thumbnail</span>:<br />
+				<input list="me_availablefolders" id="me_folderthumb" onchange="filesettupdate('me_path','thumb')" placeholder="folder/"/> <input type="text" id="me_namethumb" onchange="filesettupdate('me_filename','thumb')" placeholder="file.type" /> <input type="file" id="me_thumbupload" onchange="nameselect('thumb')"/><br />
+				<label for="me_description"><span id="">Description</span>: </label><input type="text" id="me_description" onchange="filesettupdate('me_desc','')" placeholder="description"/>
+				<label for="me_filedelete"><span id="">Delete file from database</span>: </label><button id="me_filedelete" onclick="filedelete()">Delete</button><br /><br />
+				<div id="me_tagcellsdiv"></div>
+			</div>
+			
+			<div id="tagsedit">
+				<button onclick="backtomain()">Close</button>
+				<br /><br />
+				
+				<form onsubmit="saver_tags(); return false" id="tagsform">
+				</form>
+				
+			</div>
+			
+			<div id="maingridview" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+				<div id="mediagrid">
+					<div id="qmvdbstarting">
+						<form autocomplete="off" id="dataload" onsubmit="loading(); return false">
+							<span id="">Load JSON data</span>: <input type="text" id="loader" value =""/>
+						</form>
+						<button onclick="loademptyqmv()">Load empty DB</button>
+					</div>
+					
+					<noscript>Please enable JavaScript.</noscript>
+				</div>
+			
+				<div id="navigation">
+					<ul id="navlist"></ul>
+				</div>
+			</div>
+	
+			<div id="bigviewbox">
+				<input type="button" onclick="bigviewclose()" value="X" title="close" />
+				<div class="viewboxinside">
+					<a href="" onclick="bvb_prev(); return false"><div class="mediaprev">&lt;</div></a>
+					<div id="mediabig"></div>
+					<a href="" onclick="bvb_next(); return false"><div class="medianext">&gt;</div></a>
+				</div>
+			</div>
+		<script src="qmvfiles/scripts.js"></script>
+	</body>
+
+</html>
