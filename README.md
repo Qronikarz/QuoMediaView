@@ -34,7 +34,7 @@ One of the big features is the search bar where you can type tag names or click 
 * DO NOT EVER USE \ " ' symbols because they break JSON structure. There's probably more signs that do the same, but I know only these
 * If you want to create a new tag just remember to replace spaces (" ") with underscores ("_"). Only then it will work with search. If you made a mistake just go to tag editor and find it.
 * As I wrote earlier I recommend keeping files in one folder
-* If you decide to use automatic loading which I also plan to use myself, I suggest keeping a backup in different place. You can even encrypt it or throw it into password protected archive. When I'll be updating them
+* If you decide to use automatic loading which I also plan to use myself, I suggest keeping a backup in different place. You can even encrypt it or throw it into password protected archive. When I'll be updating the js script file you might accidentaly replace the file and lose data saved there if you only keep it there.
 # Compatibility
 I started it when I still was using windows 7, but most of it was finished on linux mint. In both cases the Firefox Browser was used. You can look at the images in screens folder to see how it's supposed to look on a 1920x1080 screen on my computer. If you have different OS or different browser you can share if everything works. Maybe I'll even consider fixing stuff that's not working.
 # Demonstration database
