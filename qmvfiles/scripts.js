@@ -1033,14 +1033,38 @@ function nameselect(type) {
 
 //deletes the file from search array and database
 function filedelete() {
-	var fileslen = globaldb.quomediaviewdb[3].qmv_files.length
-	for (var i = 0; i < fileslen; i++) {
-		if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0] === testarray[inmediaedit][0]) {
-			globaldb.quomediaviewdb[3].qmv_files.splice(i,1)	
-			testarray.splice(inmediaedit,1)
-			break;
-		}
-	}
+    var fileslen = globaldb.quomediaviewdb[3].qmv_files.length 
+    for (var i = 0; i < fileslen; i++) { 
+        var fileidinside = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0] 
+        if (fileidinside === testarray[inmediaedit][0]) { 
+            //delete the tags count from qmv_tags 
+            var fileparamslen = globaldb.quomediaviewdb[3].qmv_files[i][fileidinside].length 
+            for (var j = 0; j < fileparamslen; j++) { 
+                if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileidinside][j])[0] === "tags") { 
+                    var filetagslen = globaldb.quomediaviewdb[3].qmv_files[i][fileidinside][j].tags.length 
+                    for (var k = 0; k < filetagslen; k++) { 
+                        var tglen = globaldb.quomediaviewdb[2].qmv_tags.length 
+                        for (var l = 0; l < tglen; l++) { 
+                            var tgname = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[l])[0] 
+                            var innertagslen = globaldb.quomediaviewdb[2].qmv_tags[l][tgname][1].tags.length 
+                            for (var m = 0; m < innertagslen; m++) { 
+                                var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[l][tgname][1].tags[m])[0] 
+                                if (tagid === globaldb.quomediaviewdb[3].qmv_files[i][fileidinside][j].tags[k]) { 
+                                    globaldb.quomediaviewdb[2].qmv_tags[l][tgname][1].tags[m][tagid][0] -= 1 
+                                } 
+                            } 
+                             
+                        } 
+                    } 
+                } 
+            } 
+             
+            //delete file from qmv_files 
+            globaldb.quomediaviewdb[3].qmv_files.splice(i,1)     
+            testarray.splice(inmediaedit,1) 
+            break; 
+        } 
+    }
 	
 	//when it is the only file in search
 	if (inmediaedit === 0 && testarray.length === 0) {
