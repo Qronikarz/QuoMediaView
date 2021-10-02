@@ -1,60 +1,112 @@
 # QuoMediaView
-![QMV Logo](/qmvfiles/quomediaview.svg)
 Offline image board inspired by booru sites
 ![starting site](https://raw.githubusercontent.com/MrQuerter/QuoMediaView/4651fcae50616426b7ad17c043d140768378a9ae/screens/Zrzut%20ekranu%20z%202021-05-25%2018-01-26.png)
-# Why?
-I always sorted my photos in folders and then run % search in windows, but it had some issues and you could only get one image to one folder so describing them was a pain. Additionaly webp pictures didn't have thumbnails and I couldn't use the % search on linux so the disadvantages piled up and I decided to create my own image viewer. It is inspired by booru sites, but only the front visuals. All of the other stuff is my own creation and I don't even know how they handle adding files and editing existing ones on other booru image boards
-# Name
-At first it was named qview, but not long ago I googled it and it was already used and even in some cases trademarked so I wanted to change it. I wanted to use some polish words, but the only word that came to my mind starting on q was quo which isn't even polish word just it is used in one of the famous old books by H Sienkiewicz - "Quo Vadis", but in the program name quo doesn't mean anything.
+
 # Features
-* clean/pure JS, HTML and CSS without any frameworks or libraries
-* doesn't need a server, it's only front-end
-* doesn't modify images
-* doesn't use cookies
-* runs from USB memory sticks (though I don't recommend adding some gigantic 8K resolution photos on USB 2.0 memory stick, be realistic) (you also need to have the browser installed or available on pendrive since this is just a .html site)
-* displays all of the images in database in big view allowing you to quickly browse every added file even if it's a video
-* displays all search results in one grid with different colored borders for different types: photos, videos and animations
-* pseudo dynamic changes of nearly everything in the database meaning you can quickly see differences
-* searching by tags or blocking by tags
-* displaying single files on another page with a rotate buttons working even with videos
-* tags are sorted by groups, can have simple descriptions, all of them can be hidden or changed color
-* thumbnails added primarily just for gifs which I couldn't figure out how to stop from autoplaying, but they work with pictures and videos
-* keeps aspect ratio of media on every possible viewing mode
-* automatic loading by pasting the JSON string into .js file
-# Installation
-If it's your first time using it I highly recommend downloading all files so you can check the demo database and see how it works for yourself. If not just copy the .html .js and .css files to a folder of your choosing and just run the .html file
-# Using
-When loading the site you are presented with 2 choices:
-* load JSON string
-* load empty database
-To add new files you can drag and drop them on the section on the right of the menu or go to options and use the file input. Then the files are automatically added with folder id "1" which you must only type once in media editing window so I highly recommend only using 1 folder since then you can be certain there are no duplicates. The support for more folders is available but then you have to manually pick folder for every file which is somehow made more easy by adding it to datalist.
-One of the big features is the search bar where you can type tag names or click them with mouse through menu or datalist inside (it's also the best way to search for a tag). It will only display files that have all the tags that you searched for. By click on [-] sign you can add a tag to block or type it yourself, it will block or images that have this tag.
-# Important Tips
-* the most important tag that you must choose are "picture" "video" or "animated" tags. They are used to add borders to the grid and in some cases even display the file since video needs different tags.
-* DO NOT EVER USE \ " ' symbols because they break JSON structure. There's probably more signs that do the same, but I know only these
-* If you want to create a new tag just remember to replace spaces (" ") with underscores ("_"). Only then it will work with search. If you made a mistake just go to tag editor and find it.
-* As I wrote earlier I recommend keeping files in one folder
-* If you decide to use automatic loading which I also plan to use myself, I suggest keeping a backup in different place. You can even encrypt it or throw it into password protected archive. When I'll be updating the js script file you might accidentaly replace the file and lose data saved there if you only keep it there.
+* search images in your folder using your own tags through search and block bars
+* tagging images/animations and videos using clickable graphical user interface
+* setting your own colors for search bar, block bar, media borders and tag groups
+* fully offline so you can run it from USB memory sticks or anywhere else you want
+* doesn't need any Cookies or Web Storage
+* setting your own thumbnails if you want to
+* keeps aspect ratio of your images both on single view and search thumbnails
+* everything including settings is saved in JSON format
+* automatic loading of your media database by pasting JSON code into .js file in provided space
+* 2 different viewing methods of files: a) by clicking with left mouse button which opens lightbox; b) by middle or right clicking the image which opens detailed view with info and rotate buttons
+* your database is displayed using subpages with newest added files on the front and you can choose how many thumbnails one page can display
+* no frameworks - pure/vanilla JavaScript, HTML5 and CSS3
+
+# Installing
+1. Download zip file using green "code" button on project site or clone it with git
+2. Extract it to a folder of your choosing
+3. Open the quomediaview.html using your browser
+
+# Browsing existing databases
+1. Copy and Paste the JSON code into text input you see at the start or into the .js file if you're not making any changes
+2. You can browse all of your media using tags that you added to either search for them or block them.
+
+* search by either typing the tags yourself (replace the space with underscore) or by clicking the name of the tag or minus button
+* if you want to search multiple tags separate them with space
+* search will only return results which pass all of the required tags you chose. If you type two tags in search bar and one in block bar it will only show files that have both of the searched tags and it will not show any that have the blocked tag.
+* due to how it is currently implemented (my skill also was at fault) you must first use the search bar and then block bar. It may be improved in the future.
+
+# Creating new databases and adding new files
+1. Generate empty quomediaview JSON code either before loading the code or in the settings
+2. Load it
+3. Add images either by dragging them over to your browser or from the settings using file input (you can select multiple at once)
+4. Edit interface will automatically open and you can set folders, file name, thumbnails, description, tags and delete them from database.
+5. You MUST set folder with filename and only one of the border tags or it will not work correctly.
+
+* Tags MUST be unique in the whole database
+* Tags that have more than 1 word MUST have the space sign replaced with underscore "_" sign
+* You can edit existing files by clicking the edit button and clicking the thumbnails of the image/animation/video you want to change
+
+# Few tips and good practices
+* Even though quomediaview supports having your media in few different folders I recommend keeping them in one folder because the 1st folder is automatically used when adding files so it takes less to set them up
+* all of the files are added into the database with relative location of the .html file so changing the folders will require making changes in database
+* Tags must have spaces replaced with underscore which also means it is best to not create any tags that use them for different reason
+* I recommend keeping the tag names just with text and numbers. No symbols so the JSON code structure isn't destroyed. (utf-8 letters like for example polish ą ę ł ć ń ó ź etc. work so you can try experimenting)
+* I recommend naming your files without spaces, but didn't notice anything to break with few ones that I forgot to rename
+* Keep a backup of your database JSON code on a different drive just in case. You can even encrypt it. It is up to you to save it whenever you make any changes. Especially keep this in mind when using the automatic loading from .js file since if you replace it with updated version from github you will lose your pasted JSON code.
+
+# Options and tag editing
+In options there are few things you can set/use:
+* open tags editing menu
+* add new files using file input
+* showing thumbnails (if you added any)
+* max number of files on 1 subpage
+* info icon that shows when you added an explanation to one of your tags
+* colors of search & block bars and thumbnail border colors
+* virtual location which you can use to make the quomediaview think it is located elsewhere. It is useful if you have a USB memory stick that is already sorted with images few folders inside, but want to have .html file of quomediaview show on the first opening.
+* sorting all tags alphabetically (numbers don't sort from smallest to biggest so keep this in mind)
+* resetting the settings to default (only the settings)
+* exporting existing database to JSON code so you can save it or creating an empty new database
+
+In tags editing menu you can:
+* change the tag group name
+* change the tag group color
+* hide the tag group from displaying in the menu (search will still be possible)
+* delete the tag group
+* change the name of existing tags
+* add explanation to existing tags
+* delete existing tags
+* add new tags
+* add new tag groups
+
+# Name and why was it created
+Name doesn't mean anything since I used the qview name when developing it, but due to it already being used in multiple places I decide to go for unique name. I also wanted it to have something polish sounding, but the only thing that came in mind was "quo vadis" by famous polish writer so I used it.
+It was created because I found sorting all my images/memes and videos a bother since there's no good way to group them with folders when they can have multiple things in them so you would need to put them in 2 folders, but then it takes more space. I stumbled upon anime fanart sites and there was a perfect grid based view with tags which seemed perfect for the task so after a while of thinking about it and me being even more bothered due to .webp format not being supported on windows 7 and having to keep videos and gifs in different folders since gallery viewers can't show videos I started to work on quomediaview.
+It needed to be portable, don't require setting up any servers and be easy to use.
+
 # Compatibility
-I started it when I still was using windows 7, but most of it was finished on linux mint. In both cases the Firefox Browser was used. You can look at the images in screens folder to see how it's supposed to look on a 1920x1080 screen on my computer. If you have different OS or different browser you can share if everything works. Maybe I'll even consider fixing stuff that's not working.
-# Demonstration database
-All of the files in demo database were supposed to be public domain. I even created some and also release them in public domain. If however you are the owner of one of the files please report it so I can remove it.
-# Contributions
-I will generally not accept any code or pull requests. I want to keep this all to myself so I can relicense it or close it whenever I feel like. You can however fork it and make your own, just remember to make it compatible with current JSON database so your future image board users don't need to waste more time creating a new DB from scratch
-# License
-I decided to license it with AGPL because let's be honest this just a front-end and if I wanted to have it available remotely anyone could look inside and take it. So by open-sourcing it I can at least kind of prevent it because with this license everyone needs to contribute (which might contradict above section, but forks are good)
+I started it on windows 7 firefox, I don't remember the version but it was after the Quantum Edition and finished it also on firefox Quantum Edition, but this time on linux mint. So you should be able to run it if you use windows 7 or newer versions and relatively recent linux distros. I still don't know everything about it and all the different file systems, but it should work without problems anyway. Other systems may work, but you need to have HTML5 compatible browser and mobile versions will still show the same stuff that is visible on desktop since it was not altered for mobile (most of the stuff is even now in percentage instead of pixels so it may change accordingly, but it was mostly created to be used on normal 1920x1080 screen). You can let me know if it doesn't run on devices that should be compatible.
+
+# Demo Database
+It was used by adding few of my own photos and downloading the images from public domain sites, but in the event you are the owner of one of them contact me and I'll delete them. I also release all of mine images that I added here to public domain so you can use them if you want (this does not include the quomediaview logo from the qmvfiles folder)
+
+# License and contributions
+It is licensed in AGPL because even though the probability of someone taking the code and closing it is extremely low I still want it to be always available to users. AGPL is perfect for that because you technically can upload it to the server and then use it to serve users a webpage. Don't know why wyou would use this project for that, but whatever. 
+I will not accept any contributions because I want to keep total control of this project so I can license it on different terms to people that would want to have it available differently and it is harder to do so while you have many people working on the project. You are free to fork it and I would even want to see it being done because you can easily swap the quomediaview since JSON code is portable and someone more talented than me can make a better version so it would be nice to see it. This one will always be kept as the simplest one without any frameworks.
+
+# Known issues
+* sorting tags doesn't sort numbers from smallest to biggest
+
 # Future updates
-I wouldn't expect updates soon because I consider it done for now, but in case I get iritated with something there could a surprise update
-* sorting videos by duration (this one is the most likely since on Linux Mint I can't sort files by length and it starts to throw me off)
-* sorting tags by number not a string (you can sort the number tags manualy for now)
-* radio tag group types (there are leftover in code for this, not complete of course)
-* translations support (I started it already, but decided to drop it)
-* more tools on media viewer page (maybe black and white or other css filters)
-# Goals
-Don't treat it as super serious list, just some goals that I'd think would be nice to meet
-* watch a positive review by tech youtuber
-* read a positive review by front-end site
-* hear a positive review by other people
-* know that it's used by celebrity
-* download new fork made by someone other
-* download a database made by someone other
+Don't expect them soon:
+* duration attribute for the video files (and animations?) so you can sort them by length
+* improved lightbox view with better controls that don't take space and few tools like rotating
+* dynamically changing settings so you don't need to click "save"
+* changing the size of thumbnails with preview
+* changing the size of thumbnail borders (and style?)
+* toggling the square thumbnails so it doesn't leave the spaces but loses the aspect ratio
+* displaying options on the left side in place of tags menu so you can preview all the changes
+* new tools in the detailed view like for example zoomin in/out, css filters (sepia, black&white)
+* rotating images on your own angle not multiples of 90 degrees
+* better subpages javascript code (function will not change but it will be less frustrating)
+* interface translations support (you can translate tags currently, but nothing else this easily)
+* more sorting tags options including the numbers from smallest to biggest and reversed
+* statistics page where you can see total/average duration of your videos, average tag count, biggest tags, smallest tag count. (size of your database?)
+* merging the search and block bar in one text input. Searched tags won't have any change, but blocked tags would need a minus "-" sign in front of them
+* auto assigning of border tags and filetypes
+* light mode and a new .css file with just the visuals for easy change of styles
+* software that scans your files and creates a database where you must only tag them with your own tags since it would know location, name and filetypes
