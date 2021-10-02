@@ -214,7 +214,7 @@ function tagsmenu() {
 			document.getElementById("availabletags").innerHTML += "<option value='" + tagname + "'>"
 			tagscollection.push(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])
 			if (globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[2] === "show") {
-				listtowrite += "<li><a style='text-decoration:none;color:" + tagscolor + ";' href='' onclick='document.getElementById(\"banbar\").value += \"" + tagname + " \"; return false'>[-]</a> <a style='text-decoration:none;color:" + tagscolor + ";' href='' onclick='document.getElementById(\"searchbar\").value += \"" + tagname + " \"; return false'>" + tagname.replace("_", " ") + " (" + globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][0] + ")</a>"
+				listtowrite += "<li><a style='text-decoration:none;color:" + tagscolor + ";' href='' onclick='document.getElementById(\"banbar\").value += \"" + tagname + " \"; return false'>[-]</a> <a style='text-decoration:none;color:" + tagscolor + ";' href='' onclick='document.getElementById(\"searchbar\").value += \"" + tagname + " \"; return false'>" + tagname.replaceAll("_", " ") + " (" + globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][0] + ")</a>"
 				
 				// checks if the tag has description
 				if (taglen === 3 && globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][2] !== "") {
