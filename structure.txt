@@ -1,0 +1,107 @@
+P1. Main (before loading data):
+	- logo
+	- qmv db json loader (requires pressing enter after pasting)
+	- new empty qmv db button
+
+P2. Main (after loading data):
+
+	SW1. Grid view
+		- media thumbnails
+			+ lightbox (left click) (go to SW3.)
+			+ singlemediaview (middle click or right click) (go to P3.)
+		- pagination
+			+ page buttons
+			+ curent page
+			+ page number select input
+
+	SW2. Menu
+		- logo
+		- menu controls
+			+ search box with enter button
+			+ block box with enter button
+			+ image edit switch
+				* clicking on grid view thumbnails opens image edit view (go to SW6)
+			+ options button (go to SW4.)
+		- tags list
+			+ tag groups
+				* tags
+					** block tag shortcut icon
+					** search tag shortcut with tag count
+					** description info icon
+
+	SW3. Lightbox
+		- close button (go to SW1.)
+		- previous media button
+		- media display
+		- next media button
+
+	SW4. Options view
+		- close options button (go to SW1.)
+		- edit tags button (go to SW5.)
+		- add new files input button (go to SW6.)
+		- settings form
+			+ thumbnails switch
+			+ max files on one page
+			+ tag info description icon
+			+ colors of search and block bars
+			+ file border colors section
+		- save settings form button
+			+ sort tags button
+			+ default settings reset button
+			+ export qmv db json area
+				* new empty qmv db button
+				* current qmv db button
+				* text input holding results of two previous buttons
+
+	SW5. Tags edit view
+		- close button (go to SW1.)
+		- tags edit
+			+ tag groups
+				* tag group name input
+				* tag group color input
+				* tag group hide switch
+				* delete tag group button
+				* tags list
+					** tag row
+						*** tag name input
+						*** tag description input
+						*** tag delete button
+		- new tag group button
+
+	SW6. Image edit view
+		- close button (go to SW1.)
+		- preview section
+			+ previous media button
+			+ next media button
+			+ media display
+		- image settings
+			+ main image
+				* folder
+				* file name
+				* file input
+			+ thumbnail
+				* folder
+				* file name
+				* file input
+			+ description input
+			+ image delete button
+		- tag settings
+			+ tag groups
+				* tags
+				* new tag quick add input
+			+ add new tag group button
+
+P3. Singlemediaview
+	- menu bar
+		+ logo
+		+ file info section
+			* relative file path
+			* qmv media tags
+			* file details
+				** width
+				** height
+			* current file path that browser sees
+		+ tools section
+			* rotate left button
+			* rotate right button
+	- media display
