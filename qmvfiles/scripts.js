@@ -1696,8 +1696,8 @@ function resetsettings() {
 				document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + "#90ee90" + "}"
 				break;
 			case "banbar":
-				globaldb.quomediaviewdb[0].qmv_settings[i].banbar = "ffc0cb"
-				document.getElementById("easystylechange_blockbar").innerHTML = "#banbar {background-color: " + "ffc0cb" + "}"
+				globaldb.quomediaviewdb[0].qmv_settings[i].banbar = "#ffc0cb"
+				document.getElementById("easystylechange_blockbar").innerHTML = "#banbar {background-color: " + "#ffc0cb" + "}"
 				break;
 			case "b_picture":
 				globaldb.quomediaviewdb[0].qmv_settings[i].b_picture = "#808080"
@@ -1714,6 +1714,10 @@ function resetsettings() {
 			case "b_editing":
 				globaldb.quomediaviewdb[0].qmv_settings[i].b_editing = "#800080"
 				document.getElementById("easystylechange_b_edit").innerHTML = ".editing {border: 2px solid " + "#800080" + "}"
+				break;
+			case "baselocation":
+				globaldb.quomediaviewdb[0].qmv_settings[i].baselocation = ""
+				baselocation = ""
 				break;
 		}
 	}
