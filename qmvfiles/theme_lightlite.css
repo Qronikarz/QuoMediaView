@@ -1,0 +1,29 @@
+#menucontrols {
+	background-color: white;
+}
+
+#navigation ul li{
+	border-color: black;
+}
+
+#navigation ul a{
+	color: black;
+}
+
+#currentpage {
+	background-color: black;
+	color: white;
+}
+
+#pageselect input {
+    background-color: white;
+    color: black;
+}
+
+#qvlogotext {
+	color: black;
+}
+
+#savenotifier {
+	color: red;
+}

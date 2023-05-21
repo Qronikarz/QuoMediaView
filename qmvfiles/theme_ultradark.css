@@ -1,0 +1,46 @@
+html, body {
+	color: lightgray;
+	background-color: #000
+}
+
+#menu {
+	background-color: #050505;
+}
+
+#menucontrols {
+	background-color: #050505;
+}
+
+#navigation ul li{
+	border-color: lightgray;
+}
+
+#navigation ul a{
+	color: lightgray;
+}
+
+#currentpage {
+	background-color: lightgray;
+	color: #000;
+}
+
+#pageselect input {
+    background-color: #000;
+    color: lightgray;
+}
+
+#qvlogotext {
+	color: gray;
+}
+
+#savenotifier {
+	color: red;
+}
+
+#darkthemebutton {
+	border-color: lightgray;
+}
+
+#lightthemebutton {
+	border-color: lightgray;
+}
