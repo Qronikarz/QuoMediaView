@@ -1,6 +1,5 @@
 //you can paste your QuoMediaView JSON string below for automatic loading on start:
 var qmvdbholder = ''
-
 //var qmvdbholder = '' //backup for quicker switching
 
 //empty QuoMediaView JSON string
@@ -1434,7 +1433,7 @@ function tagseditloader() {
 		var tagscolor = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[1]
 		var groupname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[0]
 		//group name
-		formcontent += "<div id='tg_div_" + i + "' style='background-color:#050505;'><input type='text' id='" + groupid + "_n' value='" + groupname + "' onchange='tagupdate(\"" + groupid + "_n\")'/> "
+		formcontent += "<div id='tg_div_" + i + "'><input type='text' id='" + groupid + "_n' value='" + groupname + "' onchange='tagupdate(\"" + groupid + "_n\")'/> "
 		//group color
 		formcontent += "<label for='" + groupid + "_c'>Color:</label><input type='color' id='" + groupid + "_c' value='" + tagscolor + "' onchange='tagupdate(\"" + groupid + "_c\")'/> "
 		//hide checkbox
@@ -1738,4 +1737,16 @@ function saveqmv() {
 	var savedata = JSON.stringify(globaldb)
 	savedata = savedata.replace("\\","")
 	document.getElementById("jsonsaveholder").value = savedata
+}
+
+//theme switch light or dark
+function themeswitch(seltheme) {
+	switch (seltheme) {
+	case "dark":
+		document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
+		break;
+	case "light":
+		document.getElementById("themingfile").href = "qmvfiles/theme_lightlite.css"
+		break;
+	}
 }
