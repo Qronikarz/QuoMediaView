@@ -10,6 +10,7 @@
 		<link rel="icon" href="qmvfiles/quomediaview.svg" type="image/svg+xml" />
 		<title>QuoMediaView</title>
 		<link rel="stylesheet" href="qmvfiles/styles.css" />
+		<link rel="stylesheet" id="themingfile" href="qmvfiles/theme_ultradark.css" />
 		<style>
 		</style>
 		<style id="easystylechange_searchbar"></style>
@@ -34,11 +35,14 @@
 					<div id="settings">
 						<form onsubmit="searching(document.getElementById('searchbar').value); return false" id=
 						"search">
-							<input list="availabletags" id="searchbar" /> <input type="submit" value="&#x2192;" />
+							<input list="availabletags" id="searchbar" /><input type="reset" value="X" /> <input type="submit" value="&#x2192;" />
 						</form>
 						<form onsubmit="banning(document.getElementById('banbar').value); return false" id="ban">
-							<input list="availabletags" id="banbar" /> <input type="submit" value="&#x2192;" />
+							<input list="availabletags" id="banbar" /><input type="reset" value="X" /> <input type="submit" value="&#x2192;" />
 						</form>
+						<hr />
+						<div id="darkthemebutton"><label for="darkthemesw">&#x263E;</label><input type="radio" name="themeswitch" id="darkthemesw" onclick="themeswitch('dark')"></div><div id="lightthemebutton"><label for="lighthemesw">&#x263C;</label><input type="radio" name="themeswitch" id="lightthemesw" onclick="themeswitch('light')"></div>
+						<br />
 						<input type="button" id="transl_s_edit" onclick="editinterface()" value="Edit" title="edit"/>
 						<input type="button" id="transl_s_options" onclick="editoptions()" value="Options" title="options"/>
 						<datalist id="availabletags"></datalist>
@@ -118,13 +122,13 @@
 						<div id="mediamini"></div>
 					</div>
 				</div><br />
-				<span id="">Path</span>:<br />
+				<span>Path</span>:<br />
 				<datalist id="me_availablefolders"></datalist>
 				<input list="me_availablefolders" id="me_foldermain" onchange="filesettupdate('me_path','main')" placeholder="folder/"/> <input type="text" id="me_namemain" onchange="filesettupdate('me_filename','main')" placeholder="file.type" /> <input type="file" id="me_nameupload" onchange="nameselect('main')" /><br />
-				<span id="">Thumbnail</span>:<br />
+				<span>Thumbnail</span>:<br />
 				<input list="me_availablefolders" id="me_folderthumb" onchange="filesettupdate('me_path','thumb')" placeholder="folder/"/> <input type="text" id="me_namethumb" onchange="filesettupdate('me_filename','thumb')" placeholder="file.type" /> <input type="file" id="me_thumbupload" onchange="nameselect('thumb')"/><br />
-				<label for="me_description"><span id="">Description</span>: </label><input type="text" id="me_description" onchange="filesettupdate('me_desc','')" placeholder="description"/>
-				<label for="me_filedelete"><span id="">Delete file from database</span>: </label><button id="me_filedelete" onclick="filedelete()">Delete</button><br /><br />
+				<label for="me_description"><span>Description</span>: </label><input type="text" id="me_description" onchange="filesettupdate('me_desc','')" placeholder="description"/>
+				<label for="me_filedelete"><span>Delete file from database</span>: </label><button id="me_filedelete" onclick="filedelete()">Delete</button><br /><br />
 				<div id="me_tagcellsdiv"></div>
 			</div>
 			
@@ -141,7 +145,7 @@
 				<div id="mediagrid">
 					<div id="qmvdbstarting">
 						<form autocomplete="off" id="dataload" onsubmit="loading(); return false">
-							<span id="">Load JSON data</span>: <input type="text" id="loader" value =""/>
+							<span>Load JSON data</span>: <input type="text" id="loader" value =""/><input type="submit" value="→"/>
 						</form>
 						<button onclick="loademptyqmv()">Load empty DB</button>
 					</div>
@@ -162,6 +166,8 @@
 					<a href="" onclick="bvb_next(); return false"><div class="medianext">&gt;</div></a>
 				</div>
 			</div>
+			
+		</div>
 		<script src="qmvfiles/scripts.js"></script>
 	</body>
 
