@@ -2,8 +2,6 @@ html, body {
 	height: 100%;
 	width: 100%;
 	margin: 0;
-	color: lightgray;
-	background-color: #000
 }
 
 #box {
@@ -16,13 +14,10 @@ html, body {
 	width: calc(15% - 5px);
 	float: left;
 	padding-right: 5px;
-	background-color: #050505;
 	overflow: auto;
-	scrollbar-color: gray #111;
 }
 
 #menucontrols {
-	background-color: #050505;
 	top: 0px;
 	position: sticky;
 }
@@ -37,10 +32,8 @@ html, body {
 	height: 100%; 
 	width: calc(85% - 5px);
 	float: left;
-	background-color: #000;
 	padding-left: 5px;
 	overflow: auto;
-	scrollbar-color: gray #111;
 }
 
 #optionsedit {
@@ -48,10 +41,8 @@ html, body {
 	height: 100%; 
 	width: calc(85% - 5px);
 	float: left;
-	background-color: #000;
 	padding-left: 5px;
 	overflow: auto;
-	scrollbar-color: gray #111;
 }
 
 #tagsedit {
@@ -59,17 +50,14 @@ html, body {
 	height: 100%; 
 	width: calc(85% - 5px);
 	float: left;
-	background-color: #000;
 	padding-left: 5px;
 	overflow: auto;
-	scrollbar-color: gray #111;
 }
 
 #bigviewbox {
 	display:none;
 	height: 100%;
 	width: 100%;
-	background-color: #000
 }
 
 .viewboxinside {
@@ -131,25 +119,20 @@ html, body {
 	height: 100%; 
 	width: calc(85% - 5px);
 	float: left;
-	background-color: #000;
 	padding-left: 5px;
 	overflow: auto;
-	scrollbar-color: gray #111;
 }
 
 #mediagrid {
 	height: 90%; 
 	width: 100%;
-	background-color: #000;
 	float: left;
 	overflow: auto;
-	scrollbar-color: gray #111;
 }
 
 #navigation {
 	height: 10%;
 	width: 100%;
-	background-color: #000;
 	float: left;
 }
 
@@ -161,22 +144,13 @@ html, body {
 	float: left;
 	margin-right: 1%;
 	padding: 1%;
-	border: 1px solid white;
-}
-
-#navigation ul a{
-	color: white;
-}
-
-#currentpage {
-	background-color: #fff;
-	color: #000;
+	border-style: solid;
+	border-width: 1px;
 }
 
 #pageselect input {
     width: 4em;
-    background-color: #000;
-    color: #fff;
+	border: 0px;
 }
 
 .hiddennavpage {
@@ -211,20 +185,7 @@ li {
 	list-style-type: none;
 }
 
-#searchbar {
-	background-color: white;
-}
-
-#banbar {
-	background-color: white;
-}
-
-input {
-	border: 0px;
-}
-
 #qvlogotext {
-	color: gray;
 	text-decoration: none;
 	font-size: 40px;
 	float: left
@@ -241,7 +202,6 @@ h4 {
 }
 
 #savenotifier {
-	color: red;
 	visibility: hidden;
 }
 
@@ -259,33 +219,6 @@ h4 {
 
 #mainpicture {
 	cursor: zoom-in;
-}
-
-.animated {
-	border: 2px solid orange;
-}
-
-.picture {
-	border: 2px solid gray;
-}
-
-.video {
-	border: 2px solid blue;
-}
-
-.gridbordertag a {
-	color: green;
-	text-decoration: none;
-}
-
-.filetypetag a {
-	color: skyblue;
-	text-decoration: none;
-}
-
-.filetag a {
-	color: lightgray;
-	text-decoration: none;
 }
 
 #menutext {
@@ -325,11 +258,22 @@ form {
 	height: 100%; 
 	width: calc(85% - 5px);
 	float: left;
-	background-color: #000;
 	padding-left: 5px;
 	display: none;
 }
 
 #settings {
 	visibility: hidden;
+}
+
+#darkthemebutton {
+	border-width: 1px;
+	border-style: solid;
+	display: inline-block;
+}
+
+#lightthemebutton {
+	border-width: 1px;
+	border-style: solid;
+	display: inline-block;
 }
