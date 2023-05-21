@@ -1079,6 +1079,9 @@ function filedelete() {
 	} else {
 		editmedia()
 	}
+	
+	changeguard = 1
+	changesnotify()
 }
 
 //adding new tags from media edit window
