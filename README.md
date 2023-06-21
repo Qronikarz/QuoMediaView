@@ -5,14 +5,14 @@ Offline media tagging board inspired by booru sites.
 # Features 
 * Search your media with your own tags
 * Mouse friendly
-* Setting your own colors for pretty much anything
+* Set your own colors for pretty much anything
 * Fully offline, can even be run from USB
 * Data is saved using JSON and doesn't require any cookies
 * Set your own thumbnails for every file
 * Keeps aspect ratio
 * 2 different viewing methods of files
-* no frameworks used - Pure/Vanilla JavaScript, HTML5 and CSS3
-* CLickable subpages for which you can customize the number of files shown
+* No frameworks used - Pure/Vanilla JavaScript, HTML5 and CSS3
+* Clickable subpages for which you can customize the number of files shown
 
 # Installing
 1. Download zip file using green "code" button on project site or clone it with git
@@ -76,7 +76,7 @@ In tags editing menu you can:
 # Name explanation
 Name doesn't mean anything.
 
-I used the qview name when developing it, but due to it already being used in multiple places I decided to go for a unique name for easier internet searching. I also wanted it to have something sounding a little polish, but the only thing that came in mind was "quo vadis" which is not in fact polish but it was a book written by a famous polish writer which most people heard about so I settled on that.
+I used the qview name when developing it, but due to it already being used in multiple places I decided to go for a unique name for easier internet searching. I also wanted it to have something sounding a little Polish, but the only thing that came in mind was "quo vadis" which is not in fact Polish but it was a book written by a famous Polish writer which most people heard about so I settled on that.
 
 # Why it was created
 It was created because I found sorting all my images, memes and videos a bother since there's no good way to group them with folders when they can have multiple things in them. You would need to make a copy or shortcut for every folder in 2 folders, but then it takes more space or is messy with shortcuts.
@@ -85,9 +85,11 @@ I have stumbled upon anime fanart sites and there was a perfect grid based view 
 I needed it to be portable on USB, don't require setting up any servers and be easy to use.
 
 # Compatibility requirements
-I want QuoMediaView to always be compatible with the last Firefox that makes it to the Windows 7 and also with Linux, but Linux will get new updates so it can't be used as a compatibility goal. Right now it doesn't require any super modern HTML features so should be working even on much older HTML5 browsers.
+Modern HTML5 browser with JavaScript enabled and access to files in a folder.
 
-I have started making it on Firefox Quantum on Windows 7 and later moved to Linux Mint 20 which is now my main OS, but upgraded to Mint 21.
+QuoMediaView shouldn't use anything that requires features from Firefox 116 and above. Bonus points for also supporting Chromium browsers below version 110. Which essentialy means Firefox 115 and Chromium 109 which are the last Windows 7 browsers is the upper limit requirement for new features.
+
+I have started making it on Firefox Quantum on Windows 7 and later moved to Linux Mint 20 which I continue to use after updating
 
 It should also work on other Operating Systems such as macOS, iOS, BSD and android but I don't have access to these first two and QMV wasn't made with smartphones in mind so it might not be mobile friendly. Feel free to inform me if or how it works if you tried it on those Operating Systems.
 
@@ -97,11 +99,11 @@ All my own media in demo/example database excluding the QuoMediaView Logo I am a
 
 If you are by any chance an owner of some image just contact me and I will remove it from here
 
-# License and contributions
+# License
 I decided to use AGPL because I want it to be always available to users. AGPL is the only choice since GPL can be exploited in some cases and QuoMediaView being essentially a web page makes this even easier.
 
 # Contributions
-I will not accept any contributions.
+I will not accept any code contributions.
 I want to keep total ownership of the code so I can dual license it when there's such a need. 
 
 You are free to fork it and I would be thrilled to see it happen since the QMV JSON code should be portable and someone more talented than me can make a better version of QuoMediaView so it would be nice to see it.
