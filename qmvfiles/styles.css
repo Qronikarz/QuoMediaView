@@ -158,7 +158,7 @@ html, body {
 }
 
 .thmbnl_box {
-	max-width: 196px;
+	width: 196px;
 	height: 196px;
 	float: left;
 	margin: 5px;
