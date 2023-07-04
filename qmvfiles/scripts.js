@@ -151,43 +151,42 @@ function loading() {
 		switch (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0]) {
 			case "thumbnails":
 				thumbnails = globaldb.quomediaviewdb[0].qmv_settings[i].thumbnails
-				document.getElementById("sett_thumb").checked = thumbnails
+				document.getElementById("sidesett_thumb").checked = thumbnails
 				break;
 			case "gridcount":
 				maxgridcount = globaldb.quomediaviewdb[0].qmv_settings[i].gridcount
-				document.getElementById("sett_maxgrid").value = maxgridcount
+				document.getElementById("sidesett_maxgrid").value = maxgridcount
 				break;
 			case "infoicon":
 				infoicon = globaldb.quomediaviewdb[0].qmv_settings[i].infoicon
-				document.getElementById("sett_infoicon").value = infoicon
+				document.getElementById("sidesett_infoicon").value = infoicon
 				break;
 			case "searchbar":
 				document.getElementById("easystylechange_searchbar").innerHTML += "#searchbar {background-color:" + globaldb.quomediaviewdb[0].qmv_settings[i].searchbar + "}"
-				document.getElementById("sett_searchbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].searchbar
+				document.getElementById("sidesett_searchbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].searchbar
 				break;
 			case "banbar":
 				document.getElementById("easystylechange_blockbar").innerHTML += "#banbar {background-color:" + globaldb.quomediaviewdb[0].qmv_settings[i].banbar + "}"
-				document.getElementById("sett_blockbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].banbar
+				document.getElementById("sidesett_blockbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].banbar
 				break;
 			case "b_picture":
 				document.getElementById("easystylechange_b_picture").innerHTML += ".picture {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_picture + "}"
-				document.getElementById("sett_b_picture").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_picture
+				document.getElementById("sidesett_b_picture").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_picture
 				break;
 			case "b_animated":
 				document.getElementById("easystylechange_b_animated").innerHTML += ".animated {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_animated + "}"
-				document.getElementById("sett_b_animated").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_animated
+				document.getElementById("sidesett_b_animated").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_animated
 				break;
 			case "b_video":
 				document.getElementById("easystylechange_b_video").innerHTML += ".video {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_video + "}"
-				document.getElementById("sett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
+				document.getElementById("sidesett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
 				break;
 			case "b_editing":
 				document.getElementById("easystylechange_b_edit").innerHTML += ".editing {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_editing + "}"
-				document.getElementById("sett_b_editing").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_editing
 				break;
 			case "baselocation":
 				baselocation = globaldb.quomediaviewdb[0].qmv_settings[i].baselocation
-				document.getElementById("sett_baselocation").value = baselocation
+				document.getElementById("sidesett_baselocation").value = baselocation
 				break;			
 		}
 	}
@@ -719,10 +718,8 @@ function bigviewclose() {
 
 //opens options menu
 function editoptions() {
-	document.getElementById("maingridview").style.display = "none"
-	document.getElementById("mediaedit").style.display = "none"
-	document.getElementById("tagsedit").style.display = "none"
-	document.getElementById("optionsedit").style.display = "block"
+	document.getElementById("menulist").style.display = "none"
+	document.getElementById("menusidesettings").style.display = "block"
 }
 
 //sorting tags (for now only by name)
@@ -780,7 +777,6 @@ function mediauploadinput() {
 //opens media editing menu for and loads basic structure
 function editmedia() {
 	document.getElementById("maingridview").style.display = "none"
-	document.getElementById("optionsedit").style.display = "none"
 	document.getElementById("mediaedit").style.display = "block"
 	var allgroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
 	var tagstowrite = ""
@@ -1355,67 +1351,86 @@ function mvb_next() {
 
 //opens tag menu to add new tags and rename existing ones
 function edittags() {
-	document.getElementById("optionsedit").style.display = "none"
+	document.getElementById("menusidesettings").style.display = "none"
 	document.getElementById("tagsedit").style.display = "block"
+	document.getElementById("menulist").style.display = "block"
 	tagseditloader()
 }
 
 //closes every other window and opens maingridview
 function backtomain() {
-	document.getElementById("optionsedit").style.display = "none"
 	document.getElementById("mediaedit").style.display = "none"
 	document.getElementById("tagsedit").style.display = "none"
+	document.getElementById("menusidesettings").style.display = "none"
 	editguard = 0
 	tagsmenu()
 	document.getElementById("maingridview").style.display = "block"
+	document.getElementById("menulist").style.display = "block"
 	document.getElementById("navigation").style.visibility = "visible"
 }
 
-//saving the changes made in
-function saver_settings() {
+function settings_changer(settchanged) {
 	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
 	for (var i = 0; i < settingslen; i++) {
-		switch (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0]) {
+		switch (settchanged) {
 			case "thumbnails":
-				globaldb.quomediaviewdb[0].qmv_settings[i].thumbnails = document.getElementById("sett_thumb").checked
-				thumbnails = document.getElementById("sett_thumb").checked
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbnails") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].thumbnails = document.getElementById("sidesett_thumb").checked
+					thumbnails = document.getElementById("sidesett_thumb").checked
+					searching(document.getElementById('searchbar').value)
+				}
 				break;
 			case "gridcount":
-				globaldb.quomediaviewdb[0].qmv_settings[i].gridcount = document.getElementById("sett_maxgrid").value
-				maxgridcount = document.getElementById("sett_maxgrid").value
-				currentpage = 1
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "gridcount") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].gridcount = document.getElementById("sidesett_maxgrid").value
+					maxgridcount = document.getElementById("sidesett_maxgrid").value
+					currentpage = 1
+					searching(document.getElementById('searchbar').value)
+				}
 				break;
 			case "infoicon":
-				globaldb.quomediaviewdb[0].qmv_settings[i].infoicon = document.getElementById("sett_infoicon").value
-				infoicon = document.getElementById("sett_infoicon").value
-				break;
-			case "searchbar":
-				globaldb.quomediaviewdb[0].qmv_settings[i].searchbar = document.getElementById("sett_searchbar").value
-				document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + document.getElementById("sett_searchbar").value + "}"
-				break;
-			case "banbar":
-				globaldb.quomediaviewdb[0].qmv_settings[i].banbar = document.getElementById("sett_blockbar").value
-				document.getElementById("easystylechange_blockbar").innerHTML = "#banbar {background-color: " + document.getElementById("sett_blockbar").value + "}"
-				break;
-			case "b_picture":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_picture = document.getElementById("sett_b_picture").value
-				document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: 2px solid " + document.getElementById("sett_b_picture").value + "}"
-				break;
-			case "b_animated":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_animated = document.getElementById("sett_b_animated").value
-				document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: 2px solid " + document.getElementById("sett_b_animated").value + "}"
-				break;
-			case "b_video":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_video = document.getElementById("sett_b_video").value
-				document.getElementById("easystylechange_b_video").innerHTML = ".video {border: 2px solid " + document.getElementById("sett_b_video").value + "}"
-				break;
-			case "b_editing":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_editing = document.getElementById("sett_b_editing").value
-				document.getElementById("easystylechange_b_edit").innerHTML = ".editing {border: 2px solid " + document.getElementById("sett_b_editing").value + "}"
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "infoicon") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].infoicon = document.getElementById("sidesett_infoicon").value
+					infoicon = document.getElementById("sidesett_infoicon").value
+					searching(document.getElementById('searchbar').value)
+				}
 				break;
 			case "baselocation":
-				globaldb.quomediaviewdb[0].qmv_settings[i].baselocation = document.getElementById("sett_baselocation").value
-				baselocation = document.getElementById("sett_baselocation").value
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "baselocation") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].baselocation = document.getElementById("sidesett_baselocation").value
+					baselocation = document.getElementById("sidesett_baselocation").value
+					searching(document.getElementById('searchbar').value)
+				}
+				break;
+			case "searchbar":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "searchbar") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].searchbar = document.getElementById("sidesett_searchbar").value
+					document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + document.getElementById("sidesett_searchbar").value + "}"
+				}
+				break;
+			case "banbar":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "banbar") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].banbar = document.getElementById("sidesett_blockbar").value
+					document.getElementById("easystylechange_blockbar").innerHTML = "#banbar {background-color: " + document.getElementById("sidesett_blockbar").value + "}"
+				}
+				break;
+			case "b_picture":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].b_picture = document.getElementById("sidesett_b_picture").value
+					document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: 2px solid " + document.getElementById("sidesett_b_picture").value + "}"
+				}
+				break;
+			case "b_animated":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].b_animated = document.getElementById("sidesett_b_animated").value
+					document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: 2px solid " + document.getElementById("sidesett_b_animated").value + "}"
+				}
+				break;
+			case "b_video":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].b_video = document.getElementById("sidesett_b_video").value
+					document.getElementById("easystylechange_b_video").innerHTML = ".video {border: 2px solid " + document.getElementById("sidesett_b_video").value + "}"
+				}
 				break;
 		}
 	}
@@ -1683,35 +1698,43 @@ function resetsettings() {
 			case "thumbnails":
 				globaldb.quomediaviewdb[0].qmv_settings[i].thumbnails = true
 				thumbnails = true
+				document.getElementById("sidesett_thumb").checked = thumbnails
 				break;
 			case "gridcount":
 				globaldb.quomediaviewdb[0].qmv_settings[i].gridcount = 28
 				maxgridcount = 28
 				currentpage = 1
+				document.getElementById("sidesett_maxgrid").value = maxgridcount
 				break;
 			case "infoicon":
 				globaldb.quomediaviewdb[0].qmv_settings[i].infoicon = "&#x2609;"
 				infoicon = "&#x2609;"
+				document.getElementById("sidesett_infoicon").value = infoicon
 				break;
 			case "searchbar":
 				globaldb.quomediaviewdb[0].qmv_settings[i].searchbar = "#90ee90"
 				document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + "#90ee90" + "}"
+				document.getElementById("sidesett_searchbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].searchbar
 				break;
 			case "banbar":
 				globaldb.quomediaviewdb[0].qmv_settings[i].banbar = "#ffc0cb"
 				document.getElementById("easystylechange_blockbar").innerHTML = "#banbar {background-color: " + "#ffc0cb" + "}"
+				document.getElementById("sidesett_blockbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].banbar
 				break;
 			case "b_picture":
 				globaldb.quomediaviewdb[0].qmv_settings[i].b_picture = "#808080"
 				document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: 2px solid " + "#808080" + "}"
+				document.getElementById("sidesett_b_picture").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_picture
 				break;
 			case "b_animated":
 				globaldb.quomediaviewdb[0].qmv_settings[i].b_animated = "#ffa500"
 				document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: 2px solid " + "#ffa500" + "}"
+				document.getElementById("sidesett_b_animated").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_animated
 				break;
 			case "b_video":
 				globaldb.quomediaviewdb[0].qmv_settings[i].b_video = "#0000ff"
 				document.getElementById("easystylechange_b_video").innerHTML = ".video {border: 2px solid " + "#0000ff" + "}"
+				document.getElementById("sidesett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
 				break;
 			case "b_editing":
 				globaldb.quomediaviewdb[0].qmv_settings[i].b_editing = "#800080"
@@ -1720,9 +1743,11 @@ function resetsettings() {
 			case "baselocation":
 				globaldb.quomediaviewdb[0].qmv_settings[i].baselocation = ""
 				baselocation = ""
+				document.getElementById("sidesett_baselocation").value = baselocation
 				break;
 		}
 	}
+	searching(document.getElementById('searchbar').value)
 	changeguard = 1
 	changesnotify()
 }
