@@ -41,9 +41,7 @@
 							<input list="availabletags" id="banbar" /><input type="reset" value="X" /> <input type="submit" value="&#x2192;" />
 						</form>
 						<hr />
-						<div id="darkthemebutton" onclick="themeswitch('dark')"><label for="darkthemesw">&#x263E;</label><input type="radio" name="themeswitch" id="darkthemesw" onclick="themeswitch('dark')"></div><div id="lightthemebutton" onclick="themeswitch('light')"><label for="lightthemesw">&#x263C;</label><input type="radio" name="themeswitch" id="lightthemesw" onclick="themeswitch('light')"></div>
-						<br />
-						<input type="button" id="transl_s_edit" onclick="editinterface()" value="Edit" title="edit"/>
+						
 						<input type="button" id="transl_s_options" onclick="editoptions()" value="Options" title="options"/>
 						<datalist id="availabletags"></datalist>
 					</div>
@@ -54,59 +52,47 @@
 					<ul id="tagslist"></ul>
 				</div>
 				
+				<div id="menusidesettings">
+					<hr />
+					<button onclick="backtomain()">Close</button><br />
+					<input type="button" id="transl_s_edit" onclick="editinterface()" value="Edit mode" title="edit"/><br /><br />
+					Theme switch:<br /><div id="darkthemebutton" onclick="themeswitch('dark')"><label for="darkthemesw">&#x263E;</label><input type="radio" name="themeswitch" id="darkthemesw" onclick="themeswitch('dark')" checked></div><div id="lightthemebutton" onclick="themeswitch('light')"><label for="lightthemesw">&#x263C;</label><input type="radio" name="themeswitch" id="lightthemesw" onclick="themeswitch('light')"></div><br /><br />
+					
+					<input type="checkbox" id="sidesett_thumb" onchange="settings_changer('thumbnails')" /><label for="sidesett_thumb"><span id="transl_sp_op_showthumbs1">Show thumbnails</span></label><br /><br />
+					
+					<span id="transl_sp_op_maxnumber2">Max files on single page</span>:</label><br />
+					<input type="number" id="sidesett_maxgrid" value="28" min="1" onchange="settings_changer('gridcount')" /><label for="sidesett_maxgrid"><br /><br />
+					
+					<span id="transl_sp_op_infoicon3">Info icon</span>:</label><br />
+					<input type="text" id="sidesett_infoicon" value="&#x2609;" onchange="settings_changer('infoicon')" /><label for="sidesett_infoicon"><br /><br />
+					
+					<span id="transl_sp_op_virtualplace4">Virtual location</span>:</label><br />
+					<input type="text" id="sidesett_baselocation" value="" onchange="settings_changer('baselocation')" /><label for="sidesett_baselocation"><br /><br />
+					
+					<input type="color" id="sidesett_searchbar" value="#90ee90" onchange="settings_changer('searchbar')" /><label for="sidesett_searchbar"><span id="transl_sp_op_searchbarcolor5">Color of search bar</span></label><br />
+					
+					<input type="color" id="sidesett_blockbar" value="#ffc0cb" onchange="settings_changer('banbar')" /><label for="sidesett_blockbar"><span id="transl_sp_op_blockbarcolor6">Color of block bar</span></label><br /><br />
+					
+					<span id="transl_sp_op_bordercolors7">File border colors</span>:<br />
+					<input type="color" id="sidesett_b_picture" value="#808080" onchange="settings_changer('b_picture')" /><label for="sidesett_b_picture"><span id="transl_sp_op_borderpicture8">Picture</span></label><br />
+					<input type="color" id="sidesett_b_animated" value="#ffa500" onchange="settings_changer('b_animated')" /><label for="sidesett_b_animated"><span id="transl_sp_op_borderanimated9">Animated</span></label><br />
+					<input type="color" id="sidesett_b_video" value="#0000ff" onchange="settings_changer('b_video')" /><label for="sidesett_b_video"><span id="transl_sp_op_bordervideo0">Video</span></label><br />
+					
+					<hr />
+					<button onclick="edittags()">Edit tags</button><br />
+					<label for="fileadder"><span id="transl_sp_op_addfiles">Add new files</span>: </label><input type="file" onchange="mediauploadinput()" id="fileadder" multiple/>
+					<button onclick="tagsorter()">Sort all tags</button><br />
+					<button onclick="resetsettings()">Reset default settings</button><br />
+					<button onclick="createnewqmvdb()">Export empty QMV DB</button><button onclick="saveqmv()">Export QMV DB</button><br />
+					<input type="text" id="jsonsaveholder"/>
+					
+				</div>
+				
 			</div>
 			
 			<div id="singlemediaview">
 				<div id="mainframe">
 				</div>
-			</div>
-			
-			<div id="optionsedit">
-				<button onclick="backtomain()">Close</button>
-				<button onclick="edittags()">Edit tags</button><br />
-				<label for="fileadder"><span id="transl_sp_op_addfiles">Add new files</span>: </label><input type="file" onchange="mediauploadinput()" id="fileadder" multiple/> 
-				
-				<br /><br />
-				
-				<form onsubmit="saver_settings(); return false" id="settingsform">
-					
-					<label for="sett_thumb"><span id="transl_sp_op_showthumbs">Show thumbnails</span>: </label>
-					<input type="checkbox" id="sett_thumb" /><br />
-					
-					<label for="sett_maxgrid"><span id="transl_sp_op_maxnumber">Max files on one page</span>: </label>
-					<input type="number" id="sett_maxgrid" value="28" min="1" /><br />
-					
-					<label for="sett_infoicon"><span id="transl_sp_op_infoicon">Info icon</span>: </label>
-					<input type="text" id="sett_infoicon" value="&#x2609;"/><br />
-					
-					<label for="sett_searchbar"><span id="transl_sp_op_searchbarcolor">Color of search bar</span>: </label>
-					<input type="color" id="sett_searchbar" value="#90ee90" /><br />
-					
-					<label for="sett_blockbar"><span id="transl_sp_op_blockbarcolor">Color of block bar</span>: </label>
-					<input type="color" id="sett_blockbar" value="#ffc0cb" /><br /><br />
-					
-					<span id="transl_sp_op_bordercolors">File borders colors</span>:<br />
-					<label for="sett_b_picture"><span id="transl_sp_op_borderpicture">Picture border</span>: </label>
-					<input type="color" id="sett_b_picture" value="#808080" /><br />
-					<label for="sett_b_animated"><span id="transl_sp_op_borderanimated">Animated border</span>: </label>
-					<input type="color" id="sett_b_animated" value="#ffa500" /><br />
-					<label for="sett_b_video"><span id="transl_sp_op_bordervideo">Video border</span>: </label>
-					<input type="color" id="sett_b_video" value="#0000ff" /><br />
-					<label for="sett_b_editing"><span id="transl_sp_op_borderediting">Editing border</span>: </label>
-					<input type="color" id="sett_b_editing" value="#800080" /><br /><br />
-					
-					<label for="sett_baselocation"><span id="transl_sp_op_virtualplace">Virtual location</span>: </label>
-					<input type="text" id="sett_baselocation" value=""/><br /><br />
-					
-					
-					<input type="submit" value="Save changes" />
-				</form><br /><br /><hr />
-				<button onclick="tagsorter()">Sort all tags</button><button onclick="resetsettings()">Reset default settings</button><br />
-				<button onclick="createnewqmvdb()">Export empty QMV DB</button><br />
-				<button onclick="saveqmv()">Export QMV DB</button>
-				<input type="text" id="jsonsaveholder"/>
-				
-				
 			</div>
 			
 			<div id="mediaedit">
