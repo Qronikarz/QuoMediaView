@@ -1352,6 +1352,7 @@ function mvb_next() {
 //opens tag menu to add new tags and rename existing ones
 function edittags() {
 	document.getElementById("menusidesettings").style.display = "none"
+	document.getElementById("maingridview").style.display = "none"
 	document.getElementById("tagsedit").style.display = "block"
 	document.getElementById("menulist").style.display = "block"
 	tagseditloader()
