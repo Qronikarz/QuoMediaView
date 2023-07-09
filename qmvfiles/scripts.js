@@ -20,6 +20,7 @@ var baselocation = "" //allows to simulate the gallery being located elsewhere
 
 var rotationvalue = 0 //for changing the rotation of viewed files
 
+var searchquery = "" //keeps current search without blocklist
 var inbigview = 0 //current media in big view box
 var inmediaedit = 0 //current media in media edit
 var currentpage = 1 //current page
@@ -407,6 +408,7 @@ function searching(tagname) {
 		searchreverser()
 		displaytemptest()
 	}
+	searchquery = tagname.trim()
 }
 
 //removing matched files from search
@@ -666,6 +668,13 @@ function displaytemptest() {
 				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
 				break;
 		}		
+	}
+
+	//change page title with some info
+	if (searchquery === "") {
+		document.getElementById("pagetitle").innerHTML = searchquery + "page " + currentpage + " of " + pagesamount + " (" + testarray.length + ") | QuoMediaView"
+	} else {
+		document.getElementById("pagetitle").innerHTML = searchquery + " | page " + currentpage + " of " + pagesamount + " (" + testarray.length + ") | QuoMediaView"
 	}
 	linksdisabler()
 }
