@@ -230,6 +230,7 @@ function tagsmenu() {
 
 // to search files matching the searched tags or all files
 function searching(tagname) {
+	searchquery = tagname.trim()
 	// special case when all files are displayed
 	if (tagname.trim() === "") {
 		testarray = []
@@ -408,7 +409,6 @@ function searching(tagname) {
 		searchreverser()
 		displaytemptest()
 	}
-	searchquery = tagname.trim()
 }
 
 //removing matched files from search
