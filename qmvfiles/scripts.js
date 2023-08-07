@@ -78,7 +78,7 @@ function singlemediaview_continued() {
 	document.getElementById("menu").innerHTML += "Tags:<ul id='smv_filetags' class='smv_list'></ul>"
 	var linktagslen = tagnamesarray.length
 	for (var i = 0; i < linktagslen; i++) {
-		tagname = tagnamesarray[i].replace("_"," ")
+		tagname = tagnamesarray[i].replaceAll("_"," ")
 		document.getElementById("smv_filetags").innerHTML += "<li>" + tagname + "</li>"
 	}
 	if (description !== "") {
