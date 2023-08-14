@@ -149,19 +149,12 @@ html, body {
 }
 
 .thmbnl_box {
-	width: 196px;
-	height: 196px;
 	float: left;
 	margin: 5px;
 }
 
 .thmbnl_box a {
 	display: inline-block
-}
-
-.thmbnl {
-	max-width: 196px;
-	max-height: 196px;
 }
 
 h3 {
