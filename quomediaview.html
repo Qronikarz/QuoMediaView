@@ -4,7 +4,7 @@
 
 	<head>
 		<!-- 
-		for image board updates go to https://github.com/MrQuerter/QuoMediaView
+		for image board updates go to https://github.com/Qronikarz/QuoMediaView
 		-->
 		<meta charset="UTF-8" />
 		<link rel="icon" href="qmvfiles/quomediaview.svg" type="image/svg+xml" />
@@ -17,6 +17,8 @@
 		<style id="easystylechange_b_animated"></style>
 		<style id="easystylechange_b_video"></style>
 		<style id="easystylechange_b_edit"></style>
+		<style id="easystylechange_gridsizespect"></style>
+		<style id="easystylechange_searchbar"></style>
 	</head>
 	
 	<body>
@@ -54,9 +56,14 @@
 					<hr />
 					<button onclick="backtomain()">Close</button><br />
 					<input type="button" id="transl_s_edit" onclick="editinterface()" value="Edit mode" title="edit"/><br /><br />
-					Theme switch:<br /><div id="darkthemebutton" onclick="themeswitch('dark')"><label for="darkthemesw">&#x263E;</label><input type="radio" name="themeswitch" id="darkthemesw" onclick="themeswitch('dark')" checked></div><div id="lightthemebutton" onclick="themeswitch('light')"><label for="lightthemesw">&#x263C;</label><input type="radio" name="themeswitch" id="lightthemesw" onclick="themeswitch('light')"></div><br /><br />
+					Theme switch:<br />
+					<div id="darkthemebutton" onclick="themeswitch('dark')"><label for="darkthemesw">&#x263E;</label><input type="radio" name="themeswitch" id="darkthemesw" onclick="themeswitch('dark')" checked></div><div id="lightthemebutton" onclick="themeswitch('light')"><label for="lightthemesw">&#x263C;</label><input type="radio" name="themeswitch" id="lightthemesw" onclick="themeswitch('light')"></div><br /><br />
 					
-					<input type="checkbox" id="sidesett_thumb" onchange="settings_changer('thumbnails')" /><label for="sidesett_thumb">Show thumbnails</label><br /><br />
+					<input type="checkbox" id="sidesett_thumb" onchange="settings_changer('thumbnails')" checked /><label for="sidesett_thumb">Use thumbnails</label><br />
+					<input type="checkbox" id="sidesett_aspratio" onchange="settings_changer('aspectratio')" checked /><label for="sidesett_aspratio">Keep aspect ratio</label><br /><br />
+					
+					<label for="sidesett_thmbsize">Thumbnails size:</label><br />
+					<input type="range" id="sidesett_thmbsize" value="196" min="20" max="800" onchange="settings_changer('thumbsize')" /><br /><br />
 					
 					<label for="sidesett_maxgrid">Max files on single page:</label><br />
 					<input type="number" id="sidesett_maxgrid" value="28" min="1" onchange="settings_changer('gridcount')" /><br /><br />
@@ -74,8 +81,8 @@
 					File border colors:<br />
 					<input type="color" id="sidesett_b_picture" value="#808080" onchange="settings_changer('b_picture')" /><label for="sidesett_b_picture">Picture</label><br />
 					<input type="color" id="sidesett_b_animated" value="#ffa500" onchange="settings_changer('b_animated')" /><label for="sidesett_b_animated">Animated</label><br />
-					<input type="color" id="sidesett_b_video" value="#0000ff" onchange="settings_changer('b_video')" /><label for="sidesett_b_video">Video</label><br />
-					
+					<input type="color" id="sidesett_b_video" value="#0000ff" onchange="settings_changer('b_video')" /><label for="sidesett_b_video">Video</label><br /><br />
+
 					<hr />
 					<button onclick="edittags()">Edit tags</button><br />
 					<label for="fileadder">Add new files:</label><input type="file" onchange="mediauploadinput()" id="fileadder" multiple />
