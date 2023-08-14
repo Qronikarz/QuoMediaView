@@ -17,6 +17,10 @@ var maxgridcount = 28 //how many media files are displayed on the page
 var thumbnails = true //enables thumbnails
 var infoicon = "&#x2609;" //stores used icon for info on tags
 var baselocation = "" //allows to simulate the gallery being located elsewhere
+var gridaspectratio = true //switches between square thumbnails and the ones that keep aspect ratio
+var gridthumbsize = 196 //stores thumbnails size for custom values
+var gridborderstyle = "double" //hidden setting for thumbnail border style | solid
+var gridbordersize = 8 //hidden setting for thumbnail border size. Remember to adjust the margin or padding in styles.css | 2
 
 var rotationvalue = 0 //for changing the rotation of viewed files
 
@@ -171,26 +175,46 @@ function loading() {
 				document.getElementById("sidesett_blockbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].banbar
 				break;
 			case "b_picture":
-				document.getElementById("easystylechange_b_picture").innerHTML += ".picture {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_picture + "}"
+				document.getElementById("easystylechange_b_picture").innerHTML += ".picture {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_picture + "}"
 				document.getElementById("sidesett_b_picture").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_picture
 				break;
 			case "b_animated":
-				document.getElementById("easystylechange_b_animated").innerHTML += ".animated {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_animated + "}"
+				document.getElementById("easystylechange_b_animated").innerHTML += ".animated {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_animated + "}"
 				document.getElementById("sidesett_b_animated").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_animated
 				break;
 			case "b_video":
-				document.getElementById("easystylechange_b_video").innerHTML += ".video {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_video + "}"
+				document.getElementById("easystylechange_b_video").innerHTML += ".video {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_video + "}"
 				document.getElementById("sidesett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
 				break;
 			case "b_editing":
-				document.getElementById("easystylechange_b_edit").innerHTML += ".editing {border: 2px solid " + globaldb.quomediaviewdb[0].qmv_settings[i].b_editing + "}"
+				document.getElementById("easystylechange_b_edit").innerHTML += ".editing {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_editing + "}"
 				break;
 			case "baselocation":
 				baselocation = globaldb.quomediaviewdb[0].qmv_settings[i].baselocation
 				document.getElementById("sidesett_baselocation").value = baselocation
-				break;			
+				break;
+			case "chosentheme":
+				document.getElementById("themingfile").href = "qmvfiles/theme_" + globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme + ".css"
+				if (globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme === "ultradark") {
+					document.getElementById("darkthemesw").checked = true
+				} else if (globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme === "lightlite") {
+					document.getElementById("lightthemesw").checked = true
+				} else {
+					document.getElementById("darkthemesw").checked = false
+				}
+				break;
+			case "aspectratio":
+				gridaspectratio = globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio
+				document.getElementById("sidesett_aspratio").checked = globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio
+				break;
+			case "thumbsize":
+				gridthumbsize = globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize
+				document.getElementById("sidesett_thmbsize").value = globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize
+				break;
 		}
 	}
+	gridthumbupdt()
+	qmvsettings_updater()
 	document.getElementById("settings").style.visibility = "visible"
 	document.getElementById("mediagrid").removeChild(document.getElementById("qmvdbstarting"))
 	tagsmenu()
@@ -1427,19 +1451,33 @@ function settings_changer(settchanged) {
 			case "b_picture":
 				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
 					globaldb.quomediaviewdb[0].qmv_settings[i].b_picture = document.getElementById("sidesett_b_picture").value
-					document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: 2px solid " + document.getElementById("sidesett_b_picture").value + "}"
+					document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: " + gridbordersize + "px " + gridborderstyle + " " + document.getElementById("sidesett_b_picture").value + "}"
 				}
 				break;
 			case "b_animated":
 				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
 					globaldb.quomediaviewdb[0].qmv_settings[i].b_animated = document.getElementById("sidesett_b_animated").value
-					document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: 2px solid " + document.getElementById("sidesett_b_animated").value + "}"
+					document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: " + gridbordersize + "px " + gridborderstyle + " " + document.getElementById("sidesett_b_animated").value + "}"
 				}
 				break;
 			case "b_video":
 				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
 					globaldb.quomediaviewdb[0].qmv_settings[i].b_video = document.getElementById("sidesett_b_video").value
-					document.getElementById("easystylechange_b_video").innerHTML = ".video {border: 2px solid " + document.getElementById("sidesett_b_video").value + "}"
+					document.getElementById("easystylechange_b_video").innerHTML = ".video {border: " + gridbordersize + "px " + gridborderstyle + " " + document.getElementById("sidesett_b_video").value + "}"
+				}
+				break;
+			case "aspectratio":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "aspectratio") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio = document.getElementById("sidesett_aspratio").checked
+					gridaspectratio = document.getElementById("sidesett_aspratio").checked
+					gridthumbupdt()
+				}
+				break;
+			case "thumbsize":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbsize") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize = document.getElementById("sidesett_thmbsize").value
+					gridthumbsize = document.getElementById("sidesett_thmbsize").value
+					gridthumbupdt()
 				}
 				break;
 		}
@@ -1776,12 +1814,171 @@ function saveqmv() {
 
 //theme switch light or dark
 function themeswitch(seltheme) {
-	switch (seltheme) {
-	case "dark":
-		document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
-		break;
-	case "light":
-		document.getElementById("themingfile").href = "qmvfiles/theme_lightlite.css"
-		break;
+	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
+	for (var i = 0; i < settingslen; i++) {
+		if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
+			switch (seltheme) {
+				case "dark":
+					globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
+					document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
+					break;
+				case "light":
+					globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme = "lightlite"
+					document.getElementById("themingfile").href = "qmvfiles/theme_lightlite.css"
+					break;
+			}
+		}
+	}
+}
+
+//when called writes a combo of selected size and aspect ratio to styling
+function gridthumbupdt() {
+	if (gridaspectratio === true) {
+		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { max-width: " + gridthumbsize + "px; max-height: " + gridthumbsize + "px; }"
+	} else {
+		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; }"
+	}
+}
+
+//checks if qmv_settings are up to date with all features
+function qmvsettings_updater() {
+	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
+	var currentsettingslist = ["thumbnails", "gridcount", "infoicon", "searchbar", "banbar", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "aspectratio", "thumbsize"]
+	var currentsettingslistlen = currentsettingslist.length
+	for (var j = 0; j < currentsettingslistlen; j++) {
+		switch (currentsettingslist[j]) {
+			case "thumbnails":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbnails") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"thumbnails": true}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "gridcount":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "gridcount") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"gridcount": 28}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "infoicon":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "infoicon") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"infoicon": "&#x2609;"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "searchbar":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "searchbar") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"searchbar": "#90ee90"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "banbar":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "banbar") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"banbar": "#ffc0cb"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "b_picture":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"b_picture": "#808080"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "b_animated":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"b_animated": "#ffa500"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "b_video":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"b_video": "#0000ff"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "baselocation":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "baselocation") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"baselocation": ""}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "chosentheme":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"chosentheme": "ultradark"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;				
+			case "aspectratio":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "aspectratio") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"aspectratio": true}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "thumbsize":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbsize") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"thumbsize": 192}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+		}
 	}
 }
