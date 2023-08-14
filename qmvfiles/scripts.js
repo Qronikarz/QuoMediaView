@@ -1793,9 +1793,25 @@ function resetsettings() {
 				baselocation = ""
 				document.getElementById("sidesett_baselocation").value = baselocation
 				break;
+			case "chosentheme":
+				globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
+				document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
+				document.getElementById("darkthemesw").checked = true
+				break;
+			case "aspectratio":
+				globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio = true
+				gridaspectratio = true
+				document.getElementById("sidesett_aspratio").checked = true
+				break;
+			case "thumbsize":
+				globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize = 192
+				gridthumbsize = 192
+				document.getElementById("sidesett_thmbsize").value = 192
+				break;
 		}
 	}
 	searching(document.getElementById('searchbar').value)
+	gridthumbupdt()
 	changeguard = 1
 	changesnotify()
 }
