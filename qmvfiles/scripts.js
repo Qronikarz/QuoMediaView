@@ -18,9 +18,9 @@ var thumbnails = true //enables thumbnails
 var infoicon = "&#x2609;" //stores used icon for info on tags
 var baselocation = "" //allows to simulate the gallery being located elsewhere
 var gridaspectratio = true //switches between square thumbnails and the ones that keep aspect ratio
-var gridthumbsize = 196 //stores thumbnails size for custom values
-var gridborderstyle = "double" //hidden setting for thumbnail border style | solid
-var gridbordersize = 8 //hidden setting for thumbnail border size. Remember to adjust the margin or padding in styles.css | 2
+var gridthumbsize = 192 //stores thumbnails size for custom values
+var gridborderstyle = "solid" //hidden setting for thumbnail border style
+var gridbordersize = 2 //hidden setting for thumbnail border size. Remember to adjust the margin or padding in styles.css
 
 var rotationvalue = 0 //for changing the rotation of viewed files
 
