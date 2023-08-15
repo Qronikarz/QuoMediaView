@@ -16,7 +16,6 @@
 		<style id="easystylechange_b_picture"></style>
 		<style id="easystylechange_b_animated"></style>
 		<style id="easystylechange_b_video"></style>
-		<style id="easystylechange_b_edit"></style>
 		<style id="easystylechange_gridsizespect"></style>
 		<style id="easystylechange_searchbar"></style>
 	</head>
@@ -54,13 +53,16 @@
 				
 				<div id="menusidesettings">
 					<hr />
-					<button onclick="backtomain()">Close</button><br />
-					<input type="button" id="transl_s_edit" onclick="editinterface()" value="Edit mode" title="edit"/><br /><br />
+					<button onclick="backtomain()">Close</button><br /><br />
 					Theme switch:<br />
 					<div id="darkthemebutton" onclick="themeswitch('dark')"><label for="darkthemesw">&#x263E;</label><input type="radio" name="themeswitch" id="darkthemesw" onclick="themeswitch('dark')" checked></div><div id="lightthemebutton" onclick="themeswitch('light')"><label for="lightthemesw">&#x263C;</label><input type="radio" name="themeswitch" id="lightthemesw" onclick="themeswitch('light')"></div><br /><br />
 					
 					<input type="checkbox" id="sidesett_thumb" onchange="settings_changer('thumbnails')" checked /><label for="sidesett_thumb">Use thumbnails</label><br />
 					<input type="checkbox" id="sidesett_aspratio" onchange="settings_changer('aspectratio')" checked /><label for="sidesett_aspratio">Keep aspect ratio</label><br /><br />
+					<!--
+					work in progress
+					<input type="checkbox" id="sidesett_nopreviews" onchange="settings_changer('nopreviews')" /><label for="sidesett_nopreviews">Only thumbnails</label><br /><br />
+					-->
 					
 					<label for="sidesett_thmbsize">Thumbnails size:</label><br />
 					<input type="range" id="sidesett_thmbsize" value="196" min="20" max="800" onchange="settings_changer('thumbsize')" /><br /><br />
@@ -74,6 +76,12 @@
 					<label for="sidesett_baselocation">Virtual location:</label><br />
 					<input type="text" id="sidesett_baselocation" value="" onchange="settings_changer('baselocation')" /><br /><br />
 					
+					<!--
+					work in progress
+					Left click mode:<br />
+					<div id="sidesett_sidepanelbutton" onclick="settings_changer('lmcsidepanel')"><input type="radio" name="leftmouseclick" id="sidesett_sidepanelsw" onclick="settings_changer('lmcsidepanel')" checked><label for="sidesett_sidepanelsw">Side panel</label></div><div id="sidesett_lightboxbutton" onclick="settings_changer('lmclightbox')"><input type="radio" name="leftmouseclick" id="sidesett_lightboxsw" onclick="settings_changer('lmclightbox')"><label for="sidesett_lightboxsw">Lightbox</label></div><br /><br />
+					-->
+					
 					<input type="color" id="sidesett_searchbar" value="#90ee90" onchange="settings_changer('searchbar')" /><label for="sidesett_searchbar">Color of search bar</label><br />
 					
 					<input type="color" id="sidesett_blockbar" value="#ffc0cb" onchange="settings_changer('banbar')" /><label for="sidesett_blockbar">Color of block bar</label><br /><br />
@@ -82,7 +90,13 @@
 					<input type="color" id="sidesett_b_picture" value="#808080" onchange="settings_changer('b_picture')" /><label for="sidesett_b_picture">Picture</label><br />
 					<input type="color" id="sidesett_b_animated" value="#ffa500" onchange="settings_changer('b_animated')" /><label for="sidesett_b_animated">Animated</label><br />
 					<input type="color" id="sidesett_b_video" value="#0000ff" onchange="settings_changer('b_video')" /><label for="sidesett_b_video">Video</label><br /><br />
-
+					
+					<!--
+					work in progress
+					Main viewing mode:<br />
+					<div id="sidesett_gridbutton" onclick="settings_changer('gridview')"><input type="radio" name="mainviewmode" id="sidesett_gridsw" onclick="settings_changer('gridview')" checked><label for="sidesett_gridsw">Grid</label></div><div id="sidesett_listbutton" onclick="settings_changer('listview')"><input type="radio" name="mainviewmode" id="sidesett_listsw" onclick="settings_changer('listview')"><label for="sidesett_listsw">List</label></div><br /><br />
+					-->
+					
 					<hr />
 					<button onclick="edittags()">Edit tags</button><br />
 					<label for="fileadder">Add new files:</label><input type="file" onchange="mediauploadinput()" id="fileadder" multiple />
@@ -150,11 +164,24 @@
 			</div>
 	
 			<div id="bigviewbox">
-				<input type="button" onclick="bigviewclose()" value="X" title="close" />
+				<div id="bvbtempbuttonsbar">
+					<input type="button" onclick="bigviewclose()" value="X" title="Close bigviewbox" /> 
+					<input type="button" onclick="bvb_prev()" value="&larr;" title="Previous file" /> 
+					<input type="button" onclick="bvb_next()" value="&rarr;" title="Next file" /> 
+					<a href="quomediaview.html#qmv_smv#newqmvbase/iss062e081626~orig.jpg#picture,jpg,space,Planet_Earth,year_unknown" target="_blank" id="bvb_newtablink"><input type="button" value="New tab" title="Open file in Single Media View tab" /></a> 
+					<!--
+					<input type="button" onclick="" value="Side panel" title="Open file in Side panel" id="bvb_sidepanelbtn" /> 
+					-->
+					<span id="bvb_editbtnparent"><input type="button" onclick="editmedia()" value="Edit" title="Open file in edit mode" id="bvb_editbtn" /></span> 
+					<input type="button" onclick="lightbox_slideshow(0,'start')" value="Slideshow" title="Activate slide show" id="bvb_slideshowbtn" />
+				</div>
+				<div id="bvbslideshowactive"><input type="button" onclick="lightbox_slideshow(0,'stop')" value="Stop slideshow" title="Stop slide show" id="bvb_slideshowoffbtn" /></div>
+				<!--
+				<input type="button" onclick="" value="Tools" title="Show toolbar" />
+				options to rotate, zoom in and out, sepia filters etc. Shown after using tools button above
+				-->
 				<div class="viewboxinside">
-					<a href="" onclick="bvb_prev(); return false"><div class="mediaprev">&lt;</div></a>
 					<div id="mediabig"></div>
-					<a href="" onclick="bvb_next(); return false"><div class="medianext">&gt;</div></a>
 				</div>
 			</div>
 			
