@@ -3,7 +3,7 @@ var qmvdbholder = ''
 //var qmvdbholder = '' //backup for quicker switching
 
 //empty QuoMediaView JSON string
-var qmvdbtemplate = '{"quomediaviewdb":[{"qmv_settings":[{"thumbnails":true},{"gridcount":28},{"infoicon":"&#x2609;"},{"searchbar":"#90ee90"},{"banbar":"#ffc0cb"},{"b_picture":"#808080"},{"b_animated":"#ffa500"},{"b_video":"#0000ff"},{"b_editing":"#800080"},{"version":"1.0"},{"baselocation":""},{"language":"en"}]},{"qmv_folders":[{"0":""}]},{"qmv_tags":[{"group-1":[{"settings":["bordergridtags","#008000","show","a_3"]},{"tags":[{"a1":[0,"picture"]},{"a2":[0,"animated"]},{"a3":[0,"video"]}]}]},{"group-2":[{"settings":["filetypetags","#87ceeb","show","b_6"]},{"tags":[{"b1":[0,"jpg"]},{"b2":[0,"png"]},{"b3":[0,"webp"]},{"b4":[0,"gif"]},{"b5":[0,"webm"]},{"b6":[0,"mp4"]}]}]},{"group-3":[{"settings":["filetechtags","#d3d3d3","show","c_1"]},{"tags":[{"c1":[0,"audio"]}]}]}]},{"qmv_files":[]}]}'
+var qmvdbtemplate = '{"quomediaviewdb":[{"qmv_settings":[{"thumbnails":true},{"gridcount":28},{"infoicon":"&#x2609;"},{"searchbar":"#90ee90"},{"banbar":"#ffc0cb"},{"b_picture":"#808080"},{"b_animated":"#ffa500"},{"b_video":"#0000ff"},{"version":"1.0"},{"baselocation":""},{"language":"en"}]},{"qmv_folders":[{"0":""}]},{"qmv_tags":[{"group-1":[{"settings":["bordergridtags","#008000","show","a_3"]},{"tags":[{"a1":[0,"picture"]},{"a2":[0,"animated"]},{"a3":[0,"video"]}]}]},{"group-2":[{"settings":["filetypetags","#87ceeb","show","b_6"]},{"tags":[{"b1":[0,"jpg"]},{"b2":[0,"png"]},{"b3":[0,"webp"]},{"b4":[0,"gif"]},{"b5":[0,"webm"]},{"b6":[0,"mp4"]}]}]},{"group-3":[{"settings":["filetechtags","#d3d3d3","show","c_1"]},{"tags":[{"c1":[0,"audio"]}]}]}]},{"qmv_files":[]}]}'
 
 // some global variables
 
@@ -29,7 +29,8 @@ var inbigview = 0 //current media in big view box
 var inmediaedit = 0 //current media in media edit
 var currentpage = 1 //current page
 var changeguard = 0 //keeps track of any changes to tags/files/settings
-var editguard = 0 //keeps track if edit mode is enabled
+
+var lightboxtimer = "" //time interval for lightbox slideshow
 
 //shows warning icon to remind that there were made any changes to the database
 function changesnotify() {
@@ -185,9 +186,6 @@ function loading() {
 			case "b_video":
 				document.getElementById("easystylechange_b_video").innerHTML += ".video {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_video + "}"
 				document.getElementById("sidesett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
-				break;
-			case "b_editing":
-				document.getElementById("easystylechange_b_edit").innerHTML += ".editing {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_editing + "}"
 				break;
 			case "baselocation":
 				baselocation = globaldb.quomediaviewdb[0].qmv_settings[i].baselocation
@@ -719,6 +717,21 @@ function bigviewer(chosenmedia) {
 	document.getElementById("bigviewbox").style.display = "block"
 	inbigview = chosenmedia * 1
 	document.getElementById("mediabig").innerHTML = chosenmedia
+	document.getElementById("bvb_editbtnparent").innerHTML = "<input type='button' onclick='inmediaedit = " + inbigview + "; editmedia()' value='Edit' title='Open file in edit mode' id='bvb_editbtn' />"
+	var disp_linktags = ""
+		var filetagslen = testarray[chosenmedia][7].length
+		for (var i = 0; i < filetagslen; i++) {
+			if (i === filetagslen - 1) {
+				disp_linktags += testarray[chosenmedia][7][i]
+			} else {
+				disp_linktags += testarray[chosenmedia][7][i] + ","
+			}
+		}
+	var singlemvpath = "quomediaview.html#qmv_smv#" + baselocation + testarray[chosenmedia][1] + testarray[chosenmedia][2] + "#" + disp_linktags
+	if (testarray[chosenmedia][8] !== "") {
+		singlemvpath += "#" + testarray[chosenmedia][8]
+	}
+	document.getElementById("bvb_newtablink").href = singlemvpath
 	var filepath = baselocation + testarray[chosenmedia][1] + testarray[chosenmedia][2]
 	var filetype = testarray[chosenmedia][5]
 	if (filetype === "video") {
@@ -810,7 +823,11 @@ function mediauploadinput() {
 //opens media editing menu for and loads basic structure
 function editmedia() {
 	document.getElementById("maingridview").style.display = "none"
+	document.getElementById("bigviewbox").style.display = "none"
 	document.getElementById("mediaedit").style.display = "block"
+	document.getElementById("menu").style.display = "block"
+	document.getElementById("menulist").style.display = "none"
+	document.getElementById("menusidesettings").style.display = "block"
 	var allgroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
 	var tagstowrite = ""
 	for (var i = 0; i < allgroupslen; i++) {
@@ -1704,40 +1721,6 @@ function deletetaggroup(taggroupdiv, taggroupname) {
 	}
 }
 
-//activates edit mode that allows for easy selecting of images to edit
-function editinterface() {
-	if (editguard === 0) {
-		
-		document.getElementById("mediagrid").innerHTML = ""
-		document.getElementById("navigation").style.visibility = "hidden"
-		var gridlen = testarray.length
-		var startid = (maxgridcount * currentpage) - maxgridcount
-		var endid = maxgridcount * currentpage
-		for (; startid < endid; startid++) {
-			if (testarray[startid] != undefined) {
-				if (testarray[startid][5] === "video") {
-					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box'><a href='' onclick='inmediaedit=" + startid + "; editmedia(); return false'><img src='" + baselocation + testarray[startid][3] + testarray[startid][4] + "' class='thmbnl editing' /></a></div>"
-					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box'><a href='' onclick='inmediaedit=" + startid + "; editmedia(); return false'><video src='" + baselocation + testarray[startid][1] + testarray[startid][2] + "' class='thmbnl editing' /></a></div>"
-					}
-				} else {
-					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box'><a href='' onclick='inmediaedit=" + startid + "; editmedia(); return false'><img src='" + baselocation + testarray[startid][3] + testarray[startid][4] + "' class='thmbnl editing' /></a></div>"
-					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box'><a href='' onclick='inmediaedit=" + startid + "; editmedia(); return false'><img src='" + baselocation + testarray[startid][1] + testarray[startid][2] + "' class='thmbnl editing' /></a></div>"
-					}
-				}
-			}
-		}
-		editguard = 1
-	} else {
-		document.getElementById("navigation").style.visibility = "visible"
-		displaytemptest()
-		editguard = 0
-	}
-}
-
 //resets default settings
 function resetsettings() {
 	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
@@ -1783,10 +1766,6 @@ function resetsettings() {
 				globaldb.quomediaviewdb[0].qmv_settings[i].b_video = "#0000ff"
 				document.getElementById("easystylechange_b_video").innerHTML = ".video {border: 2px solid " + "#0000ff" + "}"
 				document.getElementById("sidesett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
-				break;
-			case "b_editing":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_editing = "#800080"
-				document.getElementById("easystylechange_b_edit").innerHTML = ".editing {border: 2px solid " + "#800080" + "}"
 				break;
 			case "baselocation":
 				globaldb.quomediaviewdb[0].qmv_settings[i].baselocation = ""
@@ -1996,5 +1975,18 @@ function qmvsettings_updater() {
 				}
 				break;
 		}
+	}
+}
+
+function lightbox_slideshow(slidestart,state) {
+	if (state === "start") {
+		var timing = prompt("Enter how many seconds each file should stay on screen before changing", "5") * 1000
+		document.getElementById("bvbtempbuttonsbar").style.display = "none"
+		document.getElementById("bvbslideshowactive").style.display = "block"
+		lightboxtimer = setInterval(bvb_next ,timing)
+	} else if (state === "stop") {
+		clearInterval(lightboxtimer)
+		document.getElementById("bvbtempbuttonsbar").style.display = "block"
+		document.getElementById("bvbslideshowactive").style.display = "none"
 	}
 }
