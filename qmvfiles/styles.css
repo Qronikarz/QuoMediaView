@@ -55,16 +55,9 @@ html, body {
 	height: 95%;
 }
 
-.mediaprev {
-	height: 100%;
-	width: 5%;
-	float:left;
-}
-
 #mediabig {
 	height: 100%;
-	width: 90%;
-	float: left;
+	width: 100%;
 }
 
 #mediacontrols {
@@ -98,12 +91,6 @@ html, body {
 	display: block;
 	margin-left: auto;
 	margin-right: auto;	
-}
-
-.medianext {
-	height: 100%;
-	width: 5%;
-	float: left;
 }
 
 #maingridview {
@@ -263,5 +250,9 @@ form {
 }
 
 #menusidesettings {
+	display: none;
+}
+
+#bvbslideshowactive {
 	display: none;
 }
