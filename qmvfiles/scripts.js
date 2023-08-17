@@ -21,6 +21,8 @@ var gridaspectratio = true //switches between square thumbnails and the ones tha
 var gridthumbsize = 192 //stores thumbnails size for custom values
 var gridborderstyle = "solid" //hidden setting for thumbnail border style
 var gridbordersize = 2 //hidden setting for thumbnail border size. Remember to adjust the margin or padding in styles.css
+var sidepanelwidth = 36 //side panel preview width that will be removed from main grid view
+var leftmclick = "sidepreviewpanel" //for functions to know what left mouse click needs to activate
 
 var rotationvalue = 0 //for changing the rotation of viewed files
 
@@ -29,6 +31,8 @@ var inbigview = 0 //current media in big view box
 var inmediaedit = 0 //current media in media edit
 var currentpage = 1 //current page
 var changeguard = 0 //keeps track of any changes to tags/files/settings
+var insidepanelpreview = 0 //current media in side panel preview
+var sidepreviewpanelactive = false //keeps track if the side panel is currently visible
 
 var lightboxtimer = "" //time interval for lightbox slideshow
 
@@ -208,6 +212,18 @@ function loading() {
 			case "thumbsize":
 				gridthumbsize = globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize
 				document.getElementById("sidesett_thmbsize").value = globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize
+				break;
+			case "sidepanelwidth":
+				sidepanelwidth = globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth
+				document.getElementById("sidesett_sppsize").value = globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth
+				break;
+			case "leftmclick":
+				leftmclick = globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick
+				if (globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick === "sidepreviewpanel") {
+					document.getElementById("sidesett_sidepanelsw").checked = true
+				} else if (globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick === "lightbox") {
+					document.getElementById("sidesett_lightboxsw").checked = true
+				}
 				break;
 		}
 	}
@@ -500,30 +516,30 @@ function displaytemptest() {
 			if (testarray[startid][5] === "video") {
 				if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
 					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					}
 				} else {
 					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><video src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><video src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><video src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><video src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					}
 				}
 				
 			} else {
 				if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
 					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					}
 				} else {
 					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='bigviewer(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
 					}
 				}
 			}
@@ -717,16 +733,17 @@ function bigviewer(chosenmedia) {
 	document.getElementById("bigviewbox").style.display = "block"
 	inbigview = chosenmedia * 1
 	document.getElementById("mediabig").innerHTML = chosenmedia
+	document.getElementById("bvb_sidepanelbtnparent").innerHTML = "<input type='button' onclick='insidepanelpreview = " + inbigview + "; sidepanelpreviewer()' value='Side panel' title='Open file in Side panel' id='bvb_sidepanelbtn' />"
 	document.getElementById("bvb_editbtnparent").innerHTML = "<input type='button' onclick='inmediaedit = " + inbigview + "; editmedia()' value='Edit' title='Open file in edit mode' id='bvb_editbtn' />"
 	var disp_linktags = ""
-		var filetagslen = testarray[chosenmedia][7].length
-		for (var i = 0; i < filetagslen; i++) {
-			if (i === filetagslen - 1) {
-				disp_linktags += testarray[chosenmedia][7][i]
-			} else {
-				disp_linktags += testarray[chosenmedia][7][i] + ","
-			}
+	var filetagslen = testarray[chosenmedia][7].length
+	for (var i = 0; i < filetagslen; i++) {
+		if (i === filetagslen - 1) {
+			disp_linktags += testarray[chosenmedia][7][i]
+		} else {
+			disp_linktags += testarray[chosenmedia][7][i] + ","
 		}
+	}
 	var singlemvpath = "quomediaview.html#qmv_smv#" + baselocation + testarray[chosenmedia][1] + testarray[chosenmedia][2] + "#" + disp_linktags
 	if (testarray[chosenmedia][8] !== "") {
 		singlemvpath += "#" + testarray[chosenmedia][8]
@@ -1497,6 +1514,15 @@ function settings_changer(settchanged) {
 					gridthumbupdt()
 				}
 				break;
+			case "sidepanelwidth":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "sidepanelwidth") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth = document.getElementById("sidesett_sppsize").value
+					sidepanelwidth = document.getElementById("sidesett_sppsize").value
+					if (sidepreviewpanelactive === true) {
+						sidepanelpreviewer()
+					}
+				}
+				break;
 		}
 	}
 	changeguard = 1
@@ -1787,6 +1813,19 @@ function resetsettings() {
 				gridthumbsize = 192
 				document.getElementById("sidesett_thmbsize").value = 192
 				break;
+			case "sidepanelwidth":
+				globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth = 36
+				sidepanelwidth = 36
+				document.getElementById("sidesett_sppsize").value = 36
+				break;
+			case "leftmclick":
+				globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick = "sidepreviewpanel"
+				leftmclick = "sidepreviewpanel"
+				document.getElementById("sidesett_sidepanelsw").checked = true
+				if (sidepreviewpanelactive === true) {
+					sidepanelpreviewer()
+				}
+				break;
 		}
 	}
 	searching(document.getElementById('searchbar').value)
@@ -1838,7 +1877,7 @@ function gridthumbupdt() {
 //checks if qmv_settings are up to date with all features
 function qmvsettings_updater() {
 	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
-	var currentsettingslist = ["thumbnails", "gridcount", "infoicon", "searchbar", "banbar", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "aspectratio", "thumbsize"]
+	var currentsettingslist = ["thumbnails", "gridcount", "infoicon", "searchbar", "banbar", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "aspectratio", "thumbsize", "sidepanelwidth", "leftmclick"]
 	var currentsettingslistlen = currentsettingslist.length
 	for (var j = 0; j < currentsettingslistlen; j++) {
 		switch (currentsettingslist[j]) {
@@ -1974,19 +2013,149 @@ function qmvsettings_updater() {
 					}
 				}
 				break;
+			case "sidepanelwidth":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "sidepanelwidth") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"sidepanelwidth": 36}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;				
+			case "leftmclick":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "leftmclick") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"leftmclick": "sidepreviewpanel"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
 		}
 	}
 }
 
-function lightbox_slideshow(slidestart,state) {
+//automatically moves to next picture in ligthbox
+function lightbox_slideshow(state) {
 	if (state === "start") {
-		var timing = prompt("Enter how many seconds each file should stay on screen before changing", "5") * 1000
-		document.getElementById("bvbtempbuttonsbar").style.display = "none"
-		document.getElementById("bvbslideshowactive").style.display = "block"
-		lightboxtimer = setInterval(bvb_next ,timing)
+		var slideshowtiming = prompt("Enter how many seconds each file should stay on screen before changing", "5") * 1000
+		if (slideshowtiming !== 0) {
+			document.getElementById("bvbtempbuttonsbar").style.display = "none"
+			document.getElementById("bvbslideshowactive").style.display = "block"
+			lightboxtimer = setInterval(bvb_next ,slideshowtiming)
+		}
 	} else if (state === "stop") {
 		clearInterval(lightboxtimer)
 		document.getElementById("bvbtempbuttonsbar").style.display = "block"
 		document.getElementById("bvbslideshowactive").style.display = "none"
+	}
+}
+
+//opens side panel preview which is basically just smaller, portable single media view
+function sidepanelpreviewer() {
+	document.getElementById("bigviewbox").style.display = "none"
+	document.getElementById("menu").style.display = "block"
+	document.getElementById("maingridview").style.display = "block"
+	document.getElementById("mediagrid").style.width = "" + (100 - sidepanelwidth) + "%"
+	document.getElementById("sidepreviewpanel").style.width = "" + sidepanelwidth + "%"
+	document.getElementById("sidepreviewpanel").style.display = "block"
+	sidepreviewpanelactive = true
+	document.getElementById("spp_lightboxbtnparent").innerHTML = "<input type='button' onclick='bigviewer(" + insidepanelpreview + ")' value='Fullscreen' title='Open file in Lightbox' id='spp_lightboxbtn' />"
+	document.getElementById("spp_editbtnparent").innerHTML = "<input type='button' onclick='inmediaedit = " + insidepanelpreview + "; editmedia()' value='Edit' title='Open file in edit mode' id='spp_editbtn' />"
+	var disp_linktags = ""
+		var filetagslen = testarray[insidepanelpreview][7].length
+		for (var i = 0; i < filetagslen; i++) {
+			if (i === filetagslen - 1) {
+				disp_linktags += testarray[insidepanelpreview][7][i]
+			} else {
+				disp_linktags += testarray[insidepanelpreview][7][i] + ","
+			}
+		}
+	var singlemvpath = "quomediaview.html#qmv_smv#" + baselocation + testarray[insidepanelpreview][1] + testarray[insidepanelpreview][2] + "#" + disp_linktags
+	if (testarray[insidepanelpreview][8] !== "") {
+		singlemvpath += "#" + testarray[insidepanelpreview][8]
+	}
+	document.getElementById("spp_newtablink").href = singlemvpath
+	var filepath = baselocation + testarray[insidepanelpreview][1] + testarray[insidepanelpreview][2]
+	var filetype = testarray[insidepanelpreview][5]
+	if (filetype === "video") {
+		document.getElementById("sppmediabox").innerHTML = "<video src='" + filepath + "' id='sppmainmedia' class='bigmainmedia' controls>Your browser can not display videos</video>"
+	} else {
+		document.getElementById("sppmediabox").innerHTML = "<img src='" + filepath + "' id='sppmainmedia' class='bigmainmedia'/>"
+	}
+	document.getElementById("sppinfoname").innerHTML = testarray[insidepanelpreview][2]
+	document.getElementById("sppinfolocation").innerHTML = baselocation + testarray[insidepanelpreview][1]
+	document.getElementById("sppinfodescription").innerHTML = testarray[insidepanelpreview][8]
+	
+	var filetypes = testarray[insidepanelpreview][2].split(".")
+	var filetypeslen = filetypes.length
+	var filetypelast = filetypes[filetypeslen - 1].toLowerCase()
+	if (filetypelast === "mp4" || filetypelast === "webm" || filetypelast === "ogg") {
+		document.getElementById("sppinfodetails").innerHTML = ""
+	} else {
+		document.getElementById("sppinfodetails").innerHTML = "Width: " + document.getElementById("sppmainmedia").naturalWidth + "<br />"
+		document.getElementById("sppinfodetails").innerHTML += "Height: " + document.getElementById("sppmainmedia").naturalHeight
+	}
+	document.getElementById("sppinfotags").innerHTML = disp_linktags.replaceAll(',', ', ').replaceAll('_', ' ')
+	document.getElementById("sppinfofullpath").innerHTML = document.getElementById("sppmainmedia").currentSrc.replace("%20"," ")
+}
+
+//closes side panel preview
+function sidepanelpreview_close() {
+	document.getElementById("mediagrid").style.width = "100%"
+	document.getElementById("sidepreviewpanel").style.display = "none"
+	sidepreviewpanelactive = false
+}
+
+//goes to previous media
+function spp_prev() {
+	if (insidepanelpreview !== 0) {
+		insidepanelpreview -= 1
+		sidepanelpreviewer()
+	}
+}
+
+//goes to next media
+function spp_next() {
+	if(insidepanelpreview !== testarray.length - 1) {
+		insidepanelpreview += 1
+		sidepanelpreviewer()
+	}
+}
+
+//changes selected left mouse click mode
+function leftmclickswitcher(selectedmode) {
+	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
+	for (var i = 0; i < settingslen; i++) {
+		if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "leftmclick") {
+			switch (selectedmode) {
+				case "sidepreviewpanel":
+					globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick = "sidepreviewpanel"
+					leftmclick = "sidepreviewpanel"
+					break;
+				case "lightbox":
+					globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick = "lightbox"
+					leftmclick = "lightbox"
+					break;
+			}
+		}
+	}
+}
+
+//catches the left mouse click and redirects it to selected lmc mode
+function lmouseclickredirect(mediaarrayid) {
+	switch (leftmclick) {
+		case "sidepreviewpanel":
+			insidepanelpreview = mediaarrayid
+			sidepanelpreviewer()
+			break;
+		case "lightbox":
+			inbigview = mediaarrayid
+			bigviewer(mediaarrayid)
+			break;
 	}
 }
