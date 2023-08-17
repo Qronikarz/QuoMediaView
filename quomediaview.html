@@ -4,7 +4,7 @@
 
 	<head>
 		<!-- 
-		for image board updates go to https://github.com/Qronikarz/QuoMediaView
+		for media board updates go to https://github.com/Qronikarz/QuoMediaView
 		-->
 		<meta charset="UTF-8" />
 		<link rel="icon" href="qmvfiles/quomediaview.svg" type="image/svg+xml" />
@@ -41,7 +41,7 @@
 						</form>
 						<hr />
 						
-						<input type="button" id="transl_s_options" onclick="editoptions()" value="Options" title="options"/>
+						<input type="button" onclick="editoptions()" value="Options" title="options"/>
 						<datalist id="availabletags"></datalist>
 					</div>
 					
@@ -76,11 +76,11 @@
 					<label for="sidesett_baselocation">Virtual location:</label><br />
 					<input type="text" id="sidesett_baselocation" value="" onchange="settings_changer('baselocation')" /><br /><br />
 					
-					<!--
-					work in progress
+					<label for="sidesett_sppsize">Side preview panel size:</label><br />
+					<input type="range" id="sidesett_sppsize" value="36" min="20" max="60" onchange="settings_changer('sidepanelwidth')" /><br /><br />
+					
 					Left click mode:<br />
-					<div id="sidesett_sidepanelbutton" onclick="settings_changer('lmcsidepanel')"><input type="radio" name="leftmouseclick" id="sidesett_sidepanelsw" onclick="settings_changer('lmcsidepanel')" checked><label for="sidesett_sidepanelsw">Side panel</label></div><div id="sidesett_lightboxbutton" onclick="settings_changer('lmclightbox')"><input type="radio" name="leftmouseclick" id="sidesett_lightboxsw" onclick="settings_changer('lmclightbox')"><label for="sidesett_lightboxsw">Lightbox</label></div><br /><br />
-					-->
+					<div id="sidesett_sidepanelbutton" onclick="leftmclickswitcher('sidepreviewpanel')"><input type="radio" name="leftmouseclick" id="sidesett_sidepanelsw" onclick="leftmclickswitcher('sidepreviewpanel')" checked><label for="sidesett_sidepanelsw">Side panel</label></div><div id="sidesett_lightboxbutton" onclick="leftmclickswitcher('lightbox')"><input type="radio" name="leftmouseclick" id="sidesett_lightboxsw" onclick="leftmclickswitcher('lightbox')"><label for="sidesett_lightboxsw">Lightbox</label></div><br /><br />
 					
 					<input type="color" id="sidesett_searchbar" value="#90ee90" onchange="settings_changer('searchbar')" /><label for="sidesett_searchbar">Color of search bar</label><br />
 					
@@ -96,6 +96,8 @@
 					Main viewing mode:<br />
 					<div id="sidesett_gridbutton" onclick="settings_changer('gridview')"><input type="radio" name="mainviewmode" id="sidesett_gridsw" onclick="settings_changer('gridview')" checked><label for="sidesett_gridsw">Grid</label></div><div id="sidesett_listbutton" onclick="settings_changer('listview')"><input type="radio" name="mainviewmode" id="sidesett_listsw" onclick="settings_changer('listview')"><label for="sidesett_listsw">List</label></div><br /><br />
 					-->
+					
+					
 					
 					<hr />
 					<button onclick="edittags()">Edit tags</button><br />
@@ -158,24 +160,50 @@
 					<noscript>Please enable JavaScript.</noscript>
 				</div>
 			
+				<div id="sidepreviewpanel">
+					<div id="spp_buttontopbar">
+						<input type="button" onclick="sidepanelpreview_close()" value="X" title="Close side panel preview" /> 
+						<input type="button" onclick="spp_prev()" value="&larr;" title="Previous file" /> 
+						<input type="button" onclick="spp_next()" value="&rarr;" title="Next file" /> 
+						<a href="#" target="_blank" id="spp_newtablink"><input type="button" value="New tab" title="Open file in Single Media View tab" /></a>
+						<span id="spp_lightboxbtnparent"><input type="button" onclick="" value="Fullscreen" title="Open file in Lightbox" id="spp_lightboxbtn" /></span>
+						<span id="spp_editbtnparent"><input type="button" onclick="editmedia()" value="Edit" title="Open file in edit mode" id="spp_editbtn" /></span>
+					</div>
+					<div id="sidepanelpreviewmain">
+						<div id="sppmediabox"></div><hr />
+						<div id="sppinfobox">
+							<h5>File name:</h5>
+							<div id="sppinfoname" class="sppinfotexts"></div>
+							<h5>Location:</h5>
+							<div id="sppinfolocation" class="sppinfotexts"></div>
+							<h5>Description:</h5>
+							<div id="sppinfodescription" class="sppinfotexts"></div>
+							<h5>Details:</h5>
+							<div id="sppinfodetails" class="sppinfotexts"></div>
+							<h5>Tags:</h5>
+							<div id="sppinfotags" class="sppinfotexts"></div>
+							<h5>Full path:</h5>
+							<div id="sppinfofullpath" class="sppinfotexts"></div>
+						</div>
+					</div>
+				</div>
+			
 				<div id="navigation">
 					<ul id="navlist"></ul>
 				</div>
 			</div>
-	
+			
 			<div id="bigviewbox">
 				<div id="bvbtempbuttonsbar">
 					<input type="button" onclick="bigviewclose()" value="X" title="Close bigviewbox" /> 
 					<input type="button" onclick="bvb_prev()" value="&larr;" title="Previous file" /> 
 					<input type="button" onclick="bvb_next()" value="&rarr;" title="Next file" /> 
-					<a href="quomediaview.html#qmv_smv#newqmvbase/iss062e081626~orig.jpg#picture,jpg,space,Planet_Earth,year_unknown" target="_blank" id="bvb_newtablink"><input type="button" value="New tab" title="Open file in Single Media View tab" /></a> 
-					<!--
-					<input type="button" onclick="" value="Side panel" title="Open file in Side panel" id="bvb_sidepanelbtn" /> 
-					-->
+					<a href="#" target="_blank" id="bvb_newtablink"><input type="button" value="New tab" title="Open file in Single Media View tab" /></a>
+					<span id="bvb_sidepanelbtnparent"><input type="button" onclick="sidepanelpreviewer()" value="Side panel" title="Open file in Side panel" id="bvb_sidepanelbtn" /></span>
 					<span id="bvb_editbtnparent"><input type="button" onclick="editmedia()" value="Edit" title="Open file in edit mode" id="bvb_editbtn" /></span> 
-					<input type="button" onclick="lightbox_slideshow(0,'start')" value="Slideshow" title="Activate slide show" id="bvb_slideshowbtn" />
+					<input type="button" onclick="lightbox_slideshow('start')" value="Slideshow" title="Activate slide show" id="bvb_slideshowbtn" />
 				</div>
-				<div id="bvbslideshowactive"><input type="button" onclick="lightbox_slideshow(0,'stop')" value="Stop slideshow" title="Stop slide show" id="bvb_slideshowoffbtn" /></div>
+				<div id="bvbslideshowactive"><input type="button" onclick="lightbox_slideshow('stop')" value="Stop slideshow" title="Stop slide show" id="bvb_slideshowoffbtn" /></div>
 				<!--
 				<input type="button" onclick="" value="Tools" title="Show toolbar" />
 				options to rotate, zoom in and out, sepia filters etc. Shown after using tools button above
