@@ -256,3 +256,14 @@ form {
 #bvbslideshowactive {
 	display: none;
 }
+
+#sidepreviewpanel {
+	display: none;
+	height: 90%;
+	float: left;
+	overflow: auto;
+}
+
+.sppinfotexts {
+	margin-left: 5%;
+}
