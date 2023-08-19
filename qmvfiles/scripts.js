@@ -23,6 +23,8 @@ var gridborderstyle = "solid" //hidden setting for thumbnail border style
 var gridbordersize = 2 //hidden setting for thumbnail border size. Remember to adjust the margin or padding in styles.css
 var sidepanelwidth = 36 //side panel preview width that will be removed from main grid view
 var leftmclick = "sidepreviewpanel" //for functions to know what left mouse click needs to activate
+var previewresults = true //loads actual images or videos when they don't have custom set thumbnail
+var resultsviewmode = "gridview" //setting for changing how the search results are presented - grid or list
 
 var rotationvalue = 0 //for changing the rotation of viewed files
 
@@ -223,6 +225,18 @@ function loading() {
 					document.getElementById("sidesett_sidepanelsw").checked = true
 				} else if (globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick === "lightbox") {
 					document.getElementById("sidesett_lightboxsw").checked = true
+				}
+				break;
+			case "previewresults":
+				previewresults = globaldb.quomediaviewdb[0].qmv_settings[i].previewresults
+				document.getElementById("sidesett_prevresults").checked = globaldb.quomediaviewdb[0].qmv_settings[i].previewresults
+				break;
+			case "resultsviewmode":
+				resultsviewmode = globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode
+				if (globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode === "gridview") {
+					document.getElementById("sidesett_gridressw").checked = true
+				} else if (globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode === "listview") {
+					document.getElementById("sidesett_listressw").checked = true
 				}
 				break;
 		}
@@ -483,6 +497,9 @@ function searchreverser() {
 //displays the files and subpages
 function displaytemptest() {
 	document.getElementById("mediagrid").innerHTML = ""
+	if (resultsviewmode === "listview") {
+		document.getElementById("mediagrid").innerHTML = "<table id='resultslisttable'><thead><tr><th>Icon</th><th>File Name</th><th>Type</th></tr></thead><tbody id='resultstableinside'></tbody></table>"
+	}
 	var gridlen = testarray.length
 	var startid = (maxgridcount * currentpage) - maxgridcount
 	var endid = maxgridcount * currentpage
@@ -504,6 +521,10 @@ function displaytemptest() {
 			var disp_border = testarray[startid][5]
 			var disp_description = testarray[startid][8]
 			var disp_linktags = ""
+			var preloadcheck = ""
+			if (previewresults !== true) {
+				preloadcheck = "qmv/fileloadblocker"
+			}
 			var filetagslen = testarray[startid][7].length
 			for (var i = 0; i < filetagslen; i++) {
 				if (i === filetagslen - 1) {
@@ -513,33 +534,60 @@ function displaytemptest() {
 				}
 			}
 			
-			if (testarray[startid][5] === "video") {
-				if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+			if (resultsviewmode === "gridview") {
+				if (testarray[startid][5] === "video") {
+					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
+						if (testarray[startid][8] !== "") {
+							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						} else {
+							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						}
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						if (preloadcheck !== "") {
+							if (testarray[startid][8] !== "") {
+								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+							} else {
+								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+							}
+						} else {
+							if (testarray[startid][8] !== "") {
+								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><video src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+							} else {
+								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><video src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+							}
+						}
 					}
 				} else {
-					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><video src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
+						if (testarray[startid][8] !== "") {
+							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						} else {
+							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						}
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><video src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						if (testarray[startid][8] !== "") {
+							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						} else {
+							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						}
 					}
 				}
-				
-			} else {
-				if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+			} else if (resultsviewmode === "listview") {
+				if (testarray[startid][5] === "video") {
+					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
+						document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + baselocation + disp_fullthumbpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						if (preloadcheck !== "") {
+							document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
+						} else {
+							document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><video src='" + preloadcheck + baselocation + disp_fullpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
+						}
 					}
 				} else {
-					if (testarray[startid][8] !== "") {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
+						document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + baselocation + disp_fullthumbpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
 					} else {
-						document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
+						document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
 					}
 				}
 			}
@@ -1523,6 +1571,13 @@ function settings_changer(settchanged) {
 					}
 				}
 				break;
+			case "previewresults":
+				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "previewresults") {
+					globaldb.quomediaviewdb[0].qmv_settings[i].previewresults = document.getElementById("sidesett_prevresults").checked
+					previewresults = document.getElementById("sidesett_prevresults").checked
+					searching(document.getElementById('searchbar').value)
+				}
+				break;
 		}
 	}
 	changeguard = 1
@@ -1826,6 +1881,16 @@ function resetsettings() {
 					sidepanelpreviewer()
 				}
 				break;
+			case "previewresults":
+				globaldb.quomediaviewdb[0].qmv_settings[i].previewresults = true
+				previewresults = true
+				document.getElementById("sidesett_prevresults").checked = true
+				break;
+			case "resultsviewmode":
+				globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "gridview"
+				resultsviewmode = "gridview"
+				document.getElementById("sidesett_gridressw").checked = true
+				break;
 		}
 	}
 	searching(document.getElementById('searchbar').value)
@@ -1868,16 +1933,16 @@ function themeswitch(seltheme) {
 //when called writes a combo of selected size and aspect ratio to styling
 function gridthumbupdt() {
 	if (gridaspectratio === true) {
-		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { max-width: " + gridthumbsize + "px; max-height: " + gridthumbsize + "px; }"
+		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { max-width: " + gridthumbsize + "px; max-height: " + gridthumbsize + "px; } .listviewiconbox { width: " + 20 + "px; height: " + 20 + "px; } .listviewicon { max-width: " + 20 + "px; max-height: " + 20 + "px; }"
 	} else {
-		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; }"
+		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .listviewiconbox { width: " + 20 + "px; height: " + 20 + "px; } .listviewicon { width: " + 20 + "px; height: " + 20 + "px; }"
 	}
 }
 
 //checks if qmv_settings are up to date with all features
 function qmvsettings_updater() {
 	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
-	var currentsettingslist = ["thumbnails", "gridcount", "infoicon", "searchbar", "banbar", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "aspectratio", "thumbsize", "sidepanelwidth", "leftmclick"]
+	var currentsettingslist = ["thumbnails", "gridcount", "infoicon", "searchbar", "banbar", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "aspectratio", "thumbsize", "sidepanelwidth", "leftmclick", "previewresults", "resultsviewmode"]
 	var currentsettingslistlen = currentsettingslist.length
 	for (var j = 0; j < currentsettingslistlen; j++) {
 		switch (currentsettingslist[j]) {
@@ -2035,6 +2100,28 @@ function qmvsettings_updater() {
 					}
 				}
 				break;
+			case "previewresults":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "previewresults") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"previewresults": true}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "resultsviewmode":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"resultsviewmode": "gridview"}')
+						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
 		}
 	}
 }
@@ -2157,5 +2244,25 @@ function lmouseclickredirect(mediaarrayid) {
 			inbigview = mediaarrayid
 			bigviewer(mediaarrayid)
 			break;
+	}
+}
+
+//changes selected search results view mode
+function resultsviewmodewitch(selectedmode) {
+	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
+	for (var i = 0; i < settingslen; i++) {
+		if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
+			switch (selectedmode) {
+				case "gridview":
+					globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "gridview"
+					resultsviewmode = "gridview"
+					break;
+				case "listview":
+					globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "listview"
+					resultsviewmode = "listview"
+					break;
+			}
+			searching(document.getElementById('searchbar').value)
+		}
 	}
 }
