@@ -1,0 +1,73 @@
+QMV 1.1 - 
+Smaller updates, fixes and features gathered since release. Total rewrite of nearly every function but with the same functionality. No breaking changes to QMV JSON structure.
+
+New features:
++ QMV logo now used to quickly search empty query
++ Theming separated from styling into different css files for easier custom themes
++ Dark/Light theme switch
++ Submit button for loading QMV JSON with mouse click
++ Settings can now work without saving changes and results can be seen immediately
++ QMV page title now shows searched query, current page, total pages and total amount of files in that query
++ Setting thumbnails size, border style and border size
++ Switch to square thumbnails or the ones that keep aspect ratio
++ Support loading custom themes
++ Lightbox toolbar with various shortcuts
++ Slideshow mode in lightbox with timing customization
++ Side panel preview with file info and option to customize it's size
++ Left mouse click mode setting to choose which viewing method you want to use
++ Preloading files without thumbnails switch
++ Display search results mode switch - grid or list
++ Lightbox now takes all available window space
++ Lightbox toolbar autohides and shows back on mouse hover
++ Added button to move to random file in search results and random slide show option
++ Rotating media now possible on lightbox view
++ Added new dynamic and persistent tag blocking with clickable tags to add/remove them from blocklist
++ Tags can now have normal color instead of hexcode which makes them take the color used in theming file
++ Side panel preview can now display tag colors
++ Added info and stats subpage where options to manage QMV and export it were moved to, along with buttons to visit software's site and view license
++ QMV JSON now stores data creation date (but you can edit it if you want to)
++ 5 css filter tools in single file view - brightness, contrast, hue-rotate, invert and saturate
++ Uploaded files now automatically assign file border type tag and file extension if it exists in the tags
++ New search input for quicker finding of tags to add in filesedit view
+
+Changes:
++ Multiple rewrites of readme file to simplify it and include requirements to launch QMV
++ Deleting file from database activates unsaved changes exit confirmation
++ Grid elements taking same width and height (previously only same width)
++ Settings moved to menu with tags on the side
++ Removed up remains of translation support for quicker updating
++ Changed default thumbnail size to 192 from 196 to have no empty space on FHD screen
++ Edit view rendering removed (replaced with buttons in lightbox and side panel preview)
++ Code cleanup: renamed many functions and variables, removed unnecesary code and variables
++ Unified lightbox, fileedit, single file view and side panel preview structure and functions
++ Replaced old hacky pagination into something more managable and better coded
++ tag description is now stored in fuction instead of onclick parameter
++ Removed banbar and it's functions
++ Single file view now uses question marks and ampersands in the link instead of hashes 
++ Unified tag rendering functions and many more
++ Renamed most of the variables and added more comments for more readable code
++ Border tags can't now be removed, they may be only swapped for another
++ Reduced size of example database and changed max files in one page to 32 to use whole screen
++ Tags in filesedit view now take less space
+
+Bugfixes:
++ Deleting file doesn't update tag count
++ QMV Logo linking to non existing page
++ Tag menu not replacing underscores if more than 1 used in a tag
++ Reset to default doesn't reset blockbar color due to typo
++ Reset to default doesn't reset virtual location setting
++ Light mode switch didn't work due to typo
++ Grid view doesn't hide when editing tags
++ Label tags are missplaced and some don't work
++ QMV page title changes to previous query not current one
++ Single media view menu not replacing underscores if more than 1 used in a tag
++ Slide show mode sets 0 seconds when clicking on cancel button
++ Video files don't show height and width
++ Rotating files makes them cut off at the top
++ Description saves incorrectly
++ Typos in example database
+
+-_-_-_-_-_-_-
+
+QMV 1.0 - 2021.05.21
+Initial release. Having all features that were needed at the time.
