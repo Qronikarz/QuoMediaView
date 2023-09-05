@@ -1,29 +1,16 @@
-#menucontrols {
+#menu_top {
 	background-color: white;
 }
 
-#navigation ul li{
-	border-color: black;
-}
-
-#navigation ul a{
+#searchresults_pagination_compact a {
+	background-color: white;
 	color: black;
 }
 
-#currentpage {
-	background-color: black;
-	color: white;
-}
-
-#pageselect input {
-    background-color: white;
-    color: black;
-}
-
-#qvlogotext {
+.qmv_logo_text {
 	color: black;
 }
 
-#savenotifier {
+#save_warning {
 	color: red;
 }
