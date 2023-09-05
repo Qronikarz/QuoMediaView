@@ -4,7 +4,7 @@ html, body {
 	margin: 0;
 }
 
-#box {
+#wrapping_box {
 	height: 100%;
 	width: 100%;
 }
@@ -17,18 +17,21 @@ html, body {
 	overflow: auto;
 }
 
-#menucontrols {
+#menu_top {
 	top: 0px;
 	position: sticky;
 }
 
-#qviewlogo {
-	height: 7vh;
-	max-height: 50px;
+.qmv_logo_text {
+	text-decoration: none;
+	font-size: 40px;
 }
 
-#mediaedit {
+.no_display_on_start {
 	display: none;
+}
+
+.mainviewsection {
 	height: 100%; 
 	width: calc(85% - 5px);
 	float: left;
@@ -36,103 +39,83 @@ html, body {
 	overflow: auto;
 }
 
-#tagsedit {
-	display: none;
-	height: 100%; 
-	width: calc(85% - 5px);
-	float: left;
-	padding-left: 5px;
-	overflow: auto;
-}
-
-#bigviewbox {
-	display:none;
+#lightbox {
 	height: 100%;
 	width: 100%;
 }
 
-.viewboxinside {
-	height: 95%;
+#lightbox_main {
+	height: 100%;
 }
 
-#mediabig {
+#sidepanelpreview_fileinfo_tools input {
+	max-width: 4em;
+}
+
+#lightbox_filebox {
 	height: 100%;
 	width: 100%;
 }
 
-#mediacontrols {
-	height: 100%;
-	width: 10%;
-	float:left;
+#lightbox_buttonstopbar {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	opacity: 0;
 }
 
-#mediamini {
-	height: 100%;
-	width: 90%;
-	float: left;
+#lightbox_buttonstopbar:hover {
+	opacity: 1;
 }
 
-.preview {
-	max-height: 100%;
-	height: 30vh;
+#lightbox_slideshowbtnoff{
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	opacity: 0;
 }
 
-#miniviewbox {
-	height: 30vh;
+#lightbox_slideshowbtnoff:hover {
+	opacity: 1;
 }
 
-#miniviewboxinside {
-	margin: 1%;
-}
-
-.bigmainmedia {
-	max-height: 100%;
+.main_file_display {
+	max-height: 100vh;
 	max-width: 100%;
 	display: block;
+}
+
+#lightbox_file_display {
 	margin-left: auto;
-	margin-right: auto;	
+	margin-right: auto;
+	max-height: 100%;
 }
 
-#maingridview {
-	height: 100%; 
-	width: calc(85% - 5px);
-	float: left;
-	padding-left: 5px;
-	overflow: auto;
+#filesedit_file_display {
+	height: 30vh
 }
 
-#mediagrid {
-	height: 90%; 
-	width: 100%;
+#searchresults_main {
+	height: 90%;
 	float: left;
 	overflow: auto;
 }
 
-#navigation {
+#searchresults_pagination {
 	height: 10%;
 	width: 100%;
 	float: left;
 }
 
-#navigation ul {
-	padding: 0px;
-}
-
-#navigation ul li{
-	float: left;
+#searchresults_pagination_compact a {
+	margin-top: 1%;
 	margin-right: 1%;
 	padding: 1%;
+	float: left;
 	border-style: solid;
 	border-width: 1px;
-}
-
-#pageselect input {
-    width: 4em;
-	border: 0px;
-}
-
-.hiddennavpage {
-	visibility: hidden;
+	display: block;
+	text-decoration: none;
 }
 
 .thmbnl_box {
@@ -141,14 +124,10 @@ html, body {
 }
 
 .thmbnl_box a {
-	display: inline-block
+	display: inline-block;
 }
 
-h3 {
-	text-align: center;
-}
-
-ul#tagslist {
+ul {
 	padding: 0px;
 }
 
@@ -156,114 +135,65 @@ li {
 	list-style-type: none;
 }
 
-#qvlogotext {
-	text-decoration: none;
-	font-size: 40px;
-	float: left
-}
-
-#qvlogo {
-	width: 45px;
-	height: 45px;
-	float: left;
-}
-
-h4 {
-	clear: both;
-}
-
-#savenotifier {
-	visibility: hidden;
-}
-
-.mainmedia {
-	max-height: 88vh;
-	max-width: 84vw;
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#mainpicturelink {
-	cursor: default;
-}
-
-#mainpicture {
-	cursor: zoom-in;
-}
-
-#menutext {
-	float: left;
-	width: 85%;
-}
-
-#menubutton {
-	float: left;
-	width: 15%;
-}
-
-#menubutton input {
-	margin-top: 18px;
-	margin-bottom: 18px;
-}
-
-.smv_list li {
-	word-break: break-all;
-}
-
-form {
-	margin: 0px;
-}
-
 .tagborder {
 	width: max-content;
+	height: 21px;
 	float: left;
 	margin-right: 5px;
+	margin-top: 5px;
+	border-width: 1px;
+	border-style: solid;
 }
 
-.tagcellsgroup {
-	clear: both;
+.tagborder input {
+	border: none;
+	margin: 1px;
+	background-color: transparent;
+	color: inherit
 }
 
-#singlemediaview {
-	height: 100%; 
-	width: calc(85% - 5px);
-	float: left;
-	padding-left: 5px;
-	display: none;
-}
-
-#settings {
-	visibility: hidden;
-}
-
-#darkthemebutton {
+.theme_button {
 	border-width: 1px;
 	border-style: solid;
 	display: inline-block;
 }
 
-#lightthemebutton {
-	border-width: 1px;
-	border-style: solid;
-	display: inline-block;
-}
-
-#menusidesettings {
-	display: none;
-}
-
-#bvbslideshowactive {
-	display: none;
-}
-
-#sidepreviewpanel {
-	display: none;
+#sidepanelpreview {
 	height: 90%;
 	float: left;
 	overflow: auto;
 }
 
-.sppinfotexts {
+.fileinfo_texts {
 	margin-left: 5%;
+}
+
+#qmv_info_logo_svg {
+	max-height: 50px;
+}
+
+#qmv_info_logo {
+	font-size: 60px;
+}
+
+.can_break_sentences {
+	word-break: break-all;
+}
+
+.menu_tag_link a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.blocked_tag, .file_tag {
+	display: inline-block;
+}
+
+.blocked_tag_x, .file_tag_x {
+	border-width: 1px;
+	border-style: solid;
+}
+
+.clickable {
+	cursor: pointer;
 }
