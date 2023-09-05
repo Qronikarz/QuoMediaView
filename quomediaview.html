@@ -3,8 +3,9 @@
 <html>
 
 	<head>
-		<!-- 
-		for media board updates go to https://github.com/Qronikarz/QuoMediaView
+		<!--
+		For updates go to https://github.com/Qronikarz/QuoMediaView
+		This software is licensed as AGPL 3.0, you should have received a copy of the license in the files
 		-->
 		<meta charset="UTF-8" />
 		<link rel="icon" href="qmvfiles/quomediaview.svg" type="image/svg+xml" />
@@ -12,201 +13,258 @@
 		<link rel="stylesheet" href="qmvfiles/styles.css" />
 		<link rel="stylesheet" id="themingfile" href="qmvfiles/theme_ultradark.css" />
 		<style id="easystylechange_searchbar"></style>
-		<style id="easystylechange_blockbar"></style>
+		<style id="easystylechange_blocklist"></style>
 		<style id="easystylechange_b_picture"></style>
 		<style id="easystylechange_b_animated"></style>
 		<style id="easystylechange_b_video"></style>
-		<style id="easystylechange_gridsizespect"></style>
-		<style id="easystylechange_searchbar"></style>
+		<style id="easystylechange_filethumbs"></style>
 	</head>
-	
+
 	<body>
-		<div id="box">
+		<div id="wrapping_box">
 
 			<div id="menu">
-				
-				<div id="menucontrols">
-					<div id="qviewlogo">
-						<a id="qvlogotext" title="QuoMediaView" href="#" onclick="searching('')">QMV</a>
-						<span id="savenotifier">&#x26A0;!</span>
+
+				<div id="menu_top">
+					<span id="functionless_logo" class="qmv_logo_text">QMV</span>
+					<a href="" id="qmv_logo" class="qmv_logo_text no_display_on_start" title="QuoMediaView" onclick="document.getElementById('searchbar').value = ''; searching(''); return false">QMV</a>
+					<span id="save_warning" class="no_display_on_start">&#x26A0;!</span><br />
+
+					<div id="menu_controls" class="no_display_on_start">
+						<form onsubmit="searching(document.getElementById('searchbar').value); return false" id="search">
+							<input type="text" id="searchbar" list="available_tags_datalist" /><input type="reset" value="X" /> <input type="submit" value="&#x2192;" />
+						</form>
+						<input type="button" onclick="section_open('settings')" value="Settings" />
+						<datalist id="available_tags_datalist"></datalist>
 					</div>
 
-					<div id="settings">
-						<form onsubmit="searching(document.getElementById('searchbar').value); return false" id=
-						"search">
-							<input list="availabletags" id="searchbar" /><input type="reset" value="X" /> <input type="submit" value="&#x2192;" />
-						</form>
-						<form onsubmit="banning(document.getElementById('banbar').value); return false" id="ban">
-							<input list="availabletags" id="banbar" /><input type="reset" value="X" /> <input type="submit" value="&#x2192;" />
-						</form>
-						<hr />
-						
-						<input type="button" onclick="editoptions()" value="Options" title="options"/>
-						<datalist id="availabletags"></datalist>
-					</div>
-					
 				</div>
-				
-				<div id="menulist">
-					<ul id="tagslist"></ul>
+
+				<div id="menu_list">
+					<ul id="tags_list"></ul>
 				</div>
-				
-				<div id="menusidesettings">
-					<hr />
-					<button onclick="backtomain()">Close</button><br /><br />
+
+				<div id="menu_sidesettings" class="no_display_on_start">
+					<br />
+					Blocked tags:
+					<div id="blocklist"></div><br /><hr />
+					<input type="button" onclick="section_close('generalexit')" value="Close settings" /><input type="button" onclick="section_open('qmvinfostats')" value="QMV Info" /><br /><br />
 					Theme switch:<br />
-					<div id="darkthemebutton" onclick="themeswitch('dark')"><label for="darkthemesw">&#x263E;</label><input type="radio" name="themeswitch" id="darkthemesw" onclick="themeswitch('dark')" checked></div><div id="lightthemebutton" onclick="themeswitch('light')"><label for="lightthemesw">&#x263C;</label><input type="radio" name="themeswitch" id="lightthemesw" onclick="themeswitch('light')"></div><br /><br />
-					
-					<input type="checkbox" id="sidesett_thumb" onchange="settings_changer('thumbnails')" checked /><label for="sidesett_thumb">Use thumbnails</label><br />
-					<input type="checkbox" id="sidesett_aspratio" onchange="settings_changer('aspectratio')" checked /><label for="sidesett_aspratio">Keep aspect ratio</label><br />
-					<input type="checkbox" id="sidesett_prevresults" onchange="settings_changer('previewresults')" checked /><label for="sidesett_prevresults">Preview media that don't have custom set thumbnails</label><br /><br />
-										
-					<label for="sidesett_thmbsize">Thumbnails size:</label><br />
-					<input type="range" id="sidesett_thmbsize" value="196" min="20" max="800" onchange="settings_changer('thumbsize')" /><br /><br />
-					
-					<label for="sidesett_maxgrid">Max files on single page:</label><br />
-					<input type="number" id="sidesett_maxgrid" value="28" min="1" onchange="settings_changer('gridcount')" /><br /><br />
-					
-					<label for="sidesett_infoicon">Info icon:</label><br />
-					<input type="text" id="sidesett_infoicon" value="&#x2609;" onchange="settings_changer('infoicon')" /><br /><br />
-					
-					<label for="sidesett_sppsize">Side preview panel size:</label><br />
-					<input type="range" id="sidesett_sppsize" value="36" min="20" max="60" onchange="settings_changer('sidepanelwidth')" /><br /><br />
-					
+					<div class="theme_button" onclick="settings_changer('chosentheme_ultradark')">&#x263E;<input type="radio" name="themeswitch" id="sidesetting_chosentheme_ultradark" onclick="settings_changer('chosentheme_ultradark')" /></div>
+					<div class="theme_button" onclick="settings_changer('chosentheme_lightlite')">&#x263C;<input type="radio" name="themeswitch" id="sidesetting_chosentheme_lightlite" onclick="settings_changer('chosentheme_lightlite')" /></div><br /><br />
+
+					<input type="checkbox" id="sidesetting_customthumbnails" onchange="settings_changer('customthumbnails')" /><label for="sidesetting_customthumbnails">Use thumbnails</label><br />
+					<input type="checkbox" id="sidesetting_filethumbaspectratio" onchange="settings_changer('filethumbaspectratio')" /><label for="sidesetting_filethumbaspectratio">Keep aspect ratio</label><br />
+					<input type="checkbox" id="sidesetting_previewresults" onchange="settings_changer('previewresults')" /><label for="sidesetting_previewresults">Preview media that don't have custom set thumbnails</label><br /><br />
+
+					<label for="sidesetting_filethumbsize">Thumbnails size:</label><br />
+					<input type="range" id="sidesetting_filethumbsize" min="20" max="800" onchange="settings_changer('filethumbsize')" /><br /><br />
+
+					<label for="sidesetting_maxshownresults">Max files on single page:</label><br />
+					<input type="number" id="sidesetting_maxshownresults" min="1" onchange="settings_changer('maxshownresults')" /><br /><br />
+
+					<label for="sidesetting_infoicon">Info icon:</label><br />
+					<input type="text" id="sidesetting_infoicon" onchange="settings_changer('infoicon')" /><br /><br />
+
+					<label for="sidesetting_sidepanelwidth">Side preview panel size:</label><br />
+					<input type="range" id="sidesetting_sidepanelwidth" min="20" max="60" onchange="settings_changer('sidepanelwidth')" /><br /><br />
+
 					Left click mode:<br />
-					<input type="radio" name="leftmouseclick" id="sidesett_sidepanelsw" onclick="leftmclickswitcher('sidepreviewpanel')" checked><label for="sidesett_sidepanelsw">Side panel</label>
-					<input type="radio" name="leftmouseclick" id="sidesett_lightboxsw" onclick="leftmclickswitcher('lightbox')"><label for="sidesett_lightboxsw">Lightbox</label><br /><br />
-					
-					<input type="color" id="sidesett_searchbar" value="#90ee90" onchange="settings_changer('searchbar')" /><label for="sidesett_searchbar">Color of search bar</label><br />
-					
-					<input type="color" id="sidesett_blockbar" value="#ffc0cb" onchange="settings_changer('banbar')" /><label for="sidesett_blockbar">Color of block bar</label><br /><br />
-					
+					<input type="radio" name="leftmouseclickswitch" id="sidesetting_leftmouseclick_sidepanelpreview" onclick="settings_changer('leftmouseclick_sidepanelpreview')" /><label for="sidesetting_leftmouseclick_sidepanelpreview">Side panel</label>
+					<input type="radio" name="leftmouseclickswitch" id="sidesetting_leftmouseclick_lightbox" onclick="settings_changer('leftmouseclick_lightbox')" /><label for="sidesetting_leftmouseclick_lightbox">Lightbox</label><br /><br />
+
+					<input type="color" id="sidesetting_searchbar" onchange="settings_changer('searchbar')" /><label for="sidesetting_searchbar">Color of searchbar</label><br />
+
+					<input type="color" id="sidesetting_blocklist" onchange="settings_changer('blocklist')" /><label for="sidesetting_blocklist">Color of blocklist</label><br /><br />
+
 					File border colors:<br />
-					<input type="color" id="sidesett_b_picture" value="#808080" onchange="settings_changer('b_picture')" /><label for="sidesett_b_picture">Picture</label><br />
-					<input type="color" id="sidesett_b_animated" value="#ffa500" onchange="settings_changer('b_animated')" /><label for="sidesett_b_animated">Animated</label><br />
-					<input type="color" id="sidesett_b_video" value="#0000ff" onchange="settings_changer('b_video')" /><label for="sidesett_b_video">Video</label><br /><br />
+					<input type="color" id="sidesetting_b_picture" onchange="settings_changer('b_picture')" /><label for="sidesetting_b_picture">Picture</label><br />
+					<input type="color" id="sidesetting_b_animated" onchange="settings_changer('b_animated')" /><label for="sidesetting_b_animated">Animated</label><br />
+					<input type="color" id="sidesetting_b_video" onchange="settings_changer('b_video')" /><label for="sidesetting_b_video">Video</label><br /><br />
 
 					Search results viewing mode:<br />
-					<input type="radio" name="mainviewmode" id="sidesett_gridressw" onclick="resultsviewmodewitch('gridview')" checked><label for="sidesett_gridressw">Grid</label>
-					<input type="radio" name="mainviewmode" id="sidesett_listressw" onclick="resultsviewmodewitch('listview')"><label for="sidesett_listressw">List</label><br /><br />
-					
-					<label for="sidesett_baselocation">Virtual location:</label><br />
-					<input type="text" id="sidesett_baselocation" value="" onchange="settings_changer('baselocation')" /><br />
+					<input type="radio" name="mainviewmode" id="sidesetting_resultsviewmode_gridview" onclick="settings_changer('resultsviewmode_gridview')" /><label for="sidesetting_resultsviewmode_gridview">Grid</label>
+					<input type="radio" name="mainviewmode" id="sidesetting_resultsviewmode_listview" onclick="settings_changer('resultsviewmode_listview')" /><label for="sidesetting_resultsviewmode_listview">List</label><br /><br />
 
-					<hr />
-					<button onclick="edittags()">Edit tags</button><br />
-					<label for="fileadder">Add new files:</label><input type="file" onchange="mediauploadinput()" id="fileadder" multiple />
-					<button onclick="tagsorter()">Sort all tags</button><br />
-					<button onclick="resetsettings()">Reset default settings</button><br />
-					<button onclick="createnewqmvdb()">Export empty QMV DB</button><button onclick="saveqmv()">Export QMV DB</button><br />
-					<input type="text" id="jsonsaveholder"/>
-					
+					<label for="sidesetting_baselocation">Virtual location:</label><br />
+					<input type="text" id="sidesetting_baselocation" value="" onchange="settings_changer('baselocation')" /><br /><br />
+
+					<input type="button" onclick="settings_reset()" value="Reset default settings" />
 				</div>
-				
-			</div>
-			
-			<div id="singlemediaview">
-				<div id="mainframe">
-				</div>
-			</div>
-			
-			<div id="mediaedit">
-				<button onclick="backtomain()">Close</button>
-				<br /><br />
-				
-				<div id="miniviewbox">
-					<div id="miniviewboxinside">
-						<div id="mediacontrols">
-							<button onclick="mvb_prev()">Previous</button>
-							<button onclick="mvb_next()">Next</button>
-						</div>
-						<div id="mediamini"></div>
+
+				<div id="singlefileview_infobox" class="no_display_on_start">
+					<div class="theme_button" onclick="document.getElementById('themingfile').href='qmvfiles/theme_ultradark.css'">&#x263E;<input type="radio" name="switch_theme" id="switch_dark" onclick="document.getElementById('themingfile').href='qmvfiles/theme_ultradark.css'" checked /></div>
+					<div class="theme_button" onclick="document.getElementById('themingfile').href='qmvfiles/theme_lightlite.css'">&#x263C;<input type="radio" name="switch_theme" id="switch_light" onclick="document.getElementById('themingfile').href='qmvfiles/theme_lightlite.css'" /></div><br /><br />
+					<h5>File location and name:</h5>
+					<div id="singlefileview_fileinfo_locationname" class="fileinfo_texts can_break_sentences"></div>
+					<h5>Description:</h5>
+					<div id="singlefileview_fileinfo_description" class="fileinfo_texts"></div>
+					<h5>Tags:</h5>
+					<div id="singlefileview_fileinfo_tags" class="fileinfo_texts"></div>
+					<h5>Details:</h5>
+					<div id="singlefileview_fileinfo_details" class="fileinfo_texts"></div>
+					<h5>Full path:</h5>
+					<div id="singlefileview_fileinfo_fullpath" class="fileinfo_texts can_break_sentences"></div>
+					<h5>Tools:</h5>
+					<div id="singlefileview_fileinfo_tools" class="fileinfo_texts">
+						<input type="button" onclick="file_rotate('singlefileview','left')" value="&#x21B6;" title="Rotate left" />
+						<input type="button" onclick="file_rotate('singlefileview','right')" value="&#x21B7;" title="Rotate right" /><br />
+						<input type="number" id="cssf_b" onchange="file_cssfilter('singlefileview','brightness',document.getElementById('cssf_b').value)" value="100" min="0" max="1000" step="5" /> Brightness<br />
+						<input type="number" id="cssf_c" onchange="file_cssfilter('singlefileview','contrast',document.getElementById('cssf_c').value)" value="100" min="0" max="1000" step="5" /> Contrast<br />
+						<input type="number" id="cssf_h" onchange="file_cssfilter('singlefileview','hue-rotate',document.getElementById('cssf_h').value)" value="0" min="0" max="360" step="5" /> Hue-rotate<br />
+						<input type="number" id="cssf_i" onchange="file_cssfilter('singlefileview','invert',document.getElementById('cssf_i').value)" value="0" min="0" max="100" step="5" /> Invert<br />
+						<input type="number" id="cssf_s" onchange="file_cssfilter('singlefileview','saturate',document.getElementById('cssf_s').value)" value="100" min="0" max="1000" step="5" /> Saturate<br />
+
 					</div>
-				</div><br />
-				<span>Path</span>:<br />
-				<datalist id="me_availablefolders"></datalist>
-				<input list="me_availablefolders" id="me_foldermain" onchange="filesettupdate('me_path','main')" placeholder="folder/"/> <input type="text" id="me_namemain" onchange="filesettupdate('me_filename','main')" placeholder="file.type" /> <input type="file" id="me_nameupload" onchange="nameselect('main')" /><br />
-				<span>Thumbnail</span>:<br />
-				<input list="me_availablefolders" id="me_folderthumb" onchange="filesettupdate('me_path','thumb')" placeholder="folder/"/> <input type="text" id="me_namethumb" onchange="filesettupdate('me_filename','thumb')" placeholder="file.type" /> <input type="file" id="me_thumbupload" onchange="nameselect('thumb')"/><br />
-				<label for="me_description"><span>Description</span>: </label><input type="text" id="me_description" onchange="filesettupdate('me_desc','')" placeholder="description"/>
-				<label for="me_filedelete"><span>Delete file from database</span>: </label><button id="me_filedelete" onclick="filedelete()">Delete</button><br /><br />
-				<div id="me_tagcellsdiv"></div>
+				</div>
+					
 			</div>
-			
-			<div id="tagsedit">
-				<button onclick="backtomain()">Close</button>
-				<br /><br />
-				
-				<form onsubmit="saver_tags(); return false" id="tagsform">
-				</form>
-				
+
+			<div id="singlefileview" class="mainviewsection no_display_on_start">
+				<div id="singlefileview_main">
+					<div id="singlefileview_filebox"></div>
+				</div>
 			</div>
-			
-			<div id="maingridview" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
-				<div id="mediagrid">
-					<div id="qmvdbstarting">
-						<form autocomplete="off" id="dataload" onsubmit="loading(); return false">
-							<span>Load JSON data</span>: <input type="text" id="loader" value =""/><input type="submit" value="→"/>
+
+			<div id="filesedit" class="mainviewsection no_display_on_start">
+
+				<div id="filesedit_buttonstopbar">
+					<input type="button" onclick="section_close('filesedit')" value="Close" title="Close edit mode" />
+					<input type="button" onclick="file_switch('previous','filesedit')" value="&larr;" title="Previous file" />
+					<input type="button" onclick="file_switch('next','filesedit')" value="&rarr;" title="Next file" />
+					<input type="button" onclick="file_switch('random','filesedit')" value="Random" title="Move to a random file" />
+					<input type="button" onclick="file_changer('delete','')" value="Delete file from database" />
+				</div>
+
+				<div id="filesedit_main">
+					<div id="filesedit_filebox"></div><br />
+					File path:<br />
+					<input type="text" id="filesedit_file_foldermain" onchange="file_changer('folder','main')" placeholder="folder/" list="qmv_available_folders_list" /> <input type="text" id="filesedit_file_namemain" onchange="file_changer('name','main')" placeholder="file.type" /> <input type="file" id="filesedit_nameupload" onchange="document.getElementById('filesedit_file_namemain').value = document.getElementById('filesedit_nameupload').files[0].name; file_changer('name','main')" /><br />
+					Thumbnail path:<br />
+					<input type="text" id="filesedit_file_folderthumb" onchange="file_changer('folder','thumb')" placeholder="folder/" list="qmv_available_folders_list" /> <input type="text" id="filesedit_file_namethumb" onchange="file_changer('name','thumb')" placeholder="file.type" /> <input type="file" id="filesedit_thumbupload" onchange="document.getElementById('filesedit_file_namethumb').value = document.getElementById('filesedit_thumbupload').files[0].name; file_changer('name','thumb')" /><br />
+					Other details:<br />
+					<input type="text" id="filesedit_file_description" onchange="file_changer('description','')" placeholder="description" /><br />
+					File tags:<br />
+					<div id="filesedit_file_tags"></div><br /><br />
+					<datalist id="qmv_available_folders_list"></datalist>
+				</div>
+
+				<input type="button" onclick="tags_changer('group','','quickcreate')" value="Add new tag group" />
+				<form onsubmit="file_changer('tag-add',return_tag_id(document.getElementById('tagsearch_add').value)); document.getElementById('tagsearch_add').value = ''; return false"><label for="tagsearch_add">Search tag to add: </label><input type="text" id="tagsearch_add" list="available_tags_datalist" /><input type="submit" value="&#x2192;" /></form>
+				<div id="filesedit_tagcellsbox"></div><br />
+
+			</div>
+
+			<div id="tagsedit" class="mainviewsection no_display_on_start">
+				<input type="button" onclick="section_close('generalexit')" value="Close" /> <input type='button' onclick="tags_changer('group','','create')" value='Add new tag group at the bottom' /><br /><br />
+
+				<div id="tagsedit_form"></div>
+
+			</div>
+
+			<div id="qmvinfostats" class="mainviewsection no_display_on_start">
+				<input type="button" onclick="section_close('generalexit')" value="Close" /><br /><br />
+				<div id="qmv_info_logo"><img src="qmvfiles/quomediaview.svg" alt="QuoMediaView logo" id="qmv_info_logo_svg" />MV</div>
+				QuoMediaView v1.1<br /><br />
+				<input type="button" onclick="section_open('tagsedit')" value="Edit tags" /><br />
+				<input type="file" onchange="file_upload()" id="file_uploader" multiple /><label for="file_uploader"> - Add new files</label><br />
+				<input type="button" onclick="tagsorter()" value="Sort tags in every group" /><br />
+				<input type="button" onclick="export_qmv('empty')" value="Export empty QMV data" /><input type="button" onclick="export_qmv('current')" value="Export current QMV data" /><br />
+				<input type="text" id="qmv_json_export_holder" /><hr />
+				<div id="qmv_data_stats">
+					QMV data version: <span id="qmv_stats_version"></span><br />
+					QMV data creation date: <span id="qmv_stats_data"></span><br />
+					Number of tags: <span id="qmv_stats_tags_count"></span><br />
+					Number of tag groups: <span id="qmv_stats_taggroups_count"></span><br />
+					Number of files: <span id="qmv_stats_files_count"></span><br />
+					Number of files compatible with browser: <span id="qmv_stats_preloadfiles_count"></span><br />
+				</div><hr />
+
+				For QMV updates visit: <a href="https://github.com/Qronikarz/QuoMediaView" target="_blank"><input type="button" value="https://github.com/Qronikarz/QuoMediaView" /></a><br />
+				Changelog: <a href="https://github.com/Qronikarz/QuoMediaView/blob/main/changelog.txt" target="_blank"><input type="button" value="https://github.com/Qronikarz/QuoMediaView/blob/main/changelog.txt" /></a><br />
+				This software is licensed as AGPL 3.0. More info here: <a href="https://choosealicense.com/licenses/agpl-3.0/" target="_blank"><input type="button" value="https://choosealicense.com/licenses/agpl-3.0/" /></a>
+			</div>
+
+			<div id="searchresults" ondrop="item_drop(event)" ondragover="item_drag(event)" class="mainviewsection">
+				<div id="searchresults_main">
+					<div id="qmvloadingsection">
+						<form autocomplete="off" id="qmvjsonload" onsubmit="loading(); return false">
+							Load QuoMediaView JSON data: <input type="text" id="qmvjson_loadinput" /><input type="submit" value="→" />
 						</form>
-						<button onclick="loademptyqmv()">Load empty DB</button>
+						<input type="button" onclick="document.getElementById('qmvjson_loadinput').value = qmvdbtemplate; loading()" value="Load empty QuoMediaView DB" />
 					</div>
-					
+
 					<noscript>Please enable JavaScript.</noscript>
 				</div>
-			
-				<div id="sidepreviewpanel">
-					<div id="spp_buttontopbar">
-						<input type="button" onclick="sidepanelpreview_close()" value="X" title="Close side panel preview" /> 
-						<input type="button" onclick="spp_prev()" value="&larr;" title="Previous file" /> 
-						<input type="button" onclick="spp_next()" value="&rarr;" title="Next file" /> 
-						<a href="#" target="_blank" id="spp_newtablink"><input type="button" value="New tab" title="Open file in Single Media View tab" /></a>
-						<span id="spp_lightboxbtnparent"><input type="button" onclick="" value="Fullscreen" title="Open file in Lightbox" id="spp_lightboxbtn" /></span>
-						<span id="spp_editbtnparent"><input type="button" onclick="editmedia()" value="Edit" title="Open file in edit mode" id="spp_editbtn" /></span>
+
+				<div id="sidepanelpreview" class="no_display_on_start">
+
+					<div id="sidepanelpreview_buttonstopbar">
+						<input type="button" onclick="section_close('generalexit')" value="Close" title="Close side panel preview" />
+						<input type="button" onclick="file_switch('previous','sidepanelpreview')" value="&larr;" title="Previous file" />
+						<input type="button" onclick="file_switch('next','sidepanelpreview')" value="&rarr;" title="Next file" />
+						<input type="button" onclick="file_switch('random','sidepanelpreview')" value="Random" title="Move to a random file" />
+						<a href="#" target="_blank" id="sidepanelpreview_newtablink"><input type="button" value="New tab" title="Open file in single file view" /></a>
+						<input type="button" onclick="section_open('lightbox')" value="Fullscreen" title="Open file in Lightbox" id="spp_lightboxbtn" />
+						<input type="button" onclick="section_open('filesedit')" value="Edit" title="Open file in edit mode" id="spp_editbtn" />
 					</div>
-					<div id="sidepanelpreviewmain">
-						<div id="sppmediabox"></div><hr />
-						<div id="sppinfobox">
-							<h5>File name:</h5>
-							<div id="sppinfoname" class="sppinfotexts"></div>
-							<h5>Location:</h5>
-							<div id="sppinfolocation" class="sppinfotexts"></div>
+
+					<div id="sidepanelpreview_main">
+						<div id="sidepanelpreview_filebox"></div>
+						<hr />
+						<div id="sidepanelpreview_infobox">
+							<h5>File location and name:</h5>
+							<div id="sidepanelpreview_fileinfo_locationname" class="fileinfo_texts can_break_sentences"></div>
 							<h5>Description:</h5>
-							<div id="sppinfodescription" class="sppinfotexts"></div>
-							<h5>Details:</h5>
-							<div id="sppinfodetails" class="sppinfotexts"></div>
+							<div id="sidepanelpreview_fileinfo_description" class="fileinfo_texts"></div>
 							<h5>Tags:</h5>
-							<div id="sppinfotags" class="sppinfotexts"></div>
+							<div id="sidepanelpreview_fileinfo_tags" class="fileinfo_texts"></div>
+							<h5>Details:</h5>
+							<div id="sidepanelpreview_fileinfo_details" class="fileinfo_texts"></div>
 							<h5>Full path:</h5>
-							<div id="sppinfofullpath" class="sppinfotexts"></div>
+							<div id="sidepanelpreview_fileinfo_fullpath" class="fileinfo_texts can_break_sentences"></div>
 						</div>
 					</div>
+
 				</div>
-			
-				<div id="navigation">
-					<ul id="navlist"></ul>
+
+				<div id="searchresults_pagination" class="no_display_on_start">
+					<div id="searchresults_pagination_compact">
+						<div><a href="" onclick="pagination_pagechange('first'); return false">First</a></div>
+						<div><a href="" onclick="pagination_pagechange('previous'); return false">Previous</a></div>
+						<div><a href="" onclick="pagination_pagechange(prompt('Enter page number') * 1); return false"><div id="current_page"></div></a></div>
+						<div><a href="" onclick="pagination_pagechange('next'); return false">Next</a></div>
+						<div><a href="" onclick="pagination_pagechange('last'); return false">Last</a></div>
+					</div>
 				</div>
+
 			</div>
-			
-			<div id="bigviewbox">
-				<div id="bvbtempbuttonsbar">
-					<input type="button" onclick="bigviewclose()" value="X" title="Close bigviewbox" /> 
-					<input type="button" onclick="bvb_prev()" value="&larr;" title="Previous file" /> 
-					<input type="button" onclick="bvb_next()" value="&rarr;" title="Next file" /> 
-					<a href="#" target="_blank" id="bvb_newtablink"><input type="button" value="New tab" title="Open file in Single Media View tab" /></a>
-					<span id="bvb_sidepanelbtnparent"><input type="button" onclick="sidepanelpreviewer()" value="Side panel" title="Open file in Side panel" id="bvb_sidepanelbtn" /></span>
-					<span id="bvb_editbtnparent"><input type="button" onclick="editmedia()" value="Edit" title="Open file in edit mode" id="bvb_editbtn" /></span> 
-					<input type="button" onclick="lightbox_slideshow('start')" value="Slideshow" title="Activate slide show" id="bvb_slideshowbtn" />
+
+			<div id="lightbox" class="no_display_on_start">
+
+				<div id="lightbox_buttonstopbar">
+					<input type="button" onclick="section_close('generalexit')" value="Close" title="Close lightbox" />
+					<input type="button" onclick="file_switch('previous','lightbox')" value="&larr;" title="Previous file" />
+					<input type="button" onclick="file_switch('next','lightbox')" value="&rarr;" title="Next file" />
+					<input type="button" onclick="file_switch('random','lightbox')" value="Random" title="Move to a random file" />
+					<a href="#" target="_blank" id="lightbox_newtablink"><input type="button" value="New tab" title="Open file in single file view" /></a>
+					<input type="button" onclick="section_open('sidepanelpreview')" value="Side panel" title="Open file in Side panel" />
+					<input type="button" onclick="section_open('filesedit')" value="Edit" title="Open file in edit mode" />
+					<input type="button" onclick="lightbox_slideshow('start','next')" value="Slideshow" title="Activate slideshow" />
+					<input type="button" onclick="lightbox_slideshow('start','random')" value="Random slideshow" title="Activate slideshow in random order" /><br />
+					<div id="lightbox_tools">
+						<input type="button" onclick="file_rotate('lightbox','left')" value="Rotate &#x21B6;" title="Rotate left" />
+						<input type="button" onclick="file_rotate('lightbox','right')" value="Rotate &#x21B7;" title="Rotate right" />
+					</div>
 				</div>
-				<div id="bvbslideshowactive"><input type="button" onclick="lightbox_slideshow('stop')" value="Stop slideshow" title="Stop slide show" id="bvb_slideshowoffbtn" /></div>
-				<!--
-				<input type="button" onclick="" value="Tools" title="Show toolbar" />
-				options to rotate, zoom in and out, sepia filters etc. Shown after using tools button above
-				-->
-				<div class="viewboxinside">
-					<div id="mediabig"></div>
+				<input type="button" onclick="lightbox_slideshow('stop','')" value="Stop slideshow" id="lightbox_slideshowbtnoff" class="no_display_on_start"/>
+
+				<div id="lightbox_main">
+					<div id="lightbox_filebox"></div>
 				</div>
+
 			</div>
-			
+
 		</div>
 		<script src="qmvfiles/scripts.js"></script>
 	</body>
