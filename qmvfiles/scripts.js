@@ -1,851 +1,856 @@
-//you can paste your QuoMediaView JSON string below for automatic loading on start:
-var qmvdbholder = ''
-//var qmvdbholder = '' //backup for quicker switching
+// Paste your QuoMediaView JSON string in quotes below for automatic loading on start (remember to keep a backup and save changes):
+var qmv_data_autoload_holder = ''
+//var qmv_autoload_holder = '' // 2nd loader for quicker switching in testing
 
-//empty QuoMediaView JSON string
-var qmvdbtemplate = '{"quomediaviewdb":[{"qmv_settings":[{"thumbnails":true},{"gridcount":28},{"infoicon":"&#x2609;"},{"searchbar":"#90ee90"},{"banbar":"#ffc0cb"},{"b_picture":"#808080"},{"b_animated":"#ffa500"},{"b_video":"#0000ff"},{"version":"1.0"},{"baselocation":""},{"language":"en"}]},{"qmv_folders":[{"0":""}]},{"qmv_tags":[{"group-1":[{"settings":["bordergridtags","#008000","show","a_3"]},{"tags":[{"a1":[0,"picture"]},{"a2":[0,"animated"]},{"a3":[0,"video"]}]}]},{"group-2":[{"settings":["filetypetags","#87ceeb","show","b_6"]},{"tags":[{"b1":[0,"jpg"]},{"b2":[0,"png"]},{"b3":[0,"webp"]},{"b4":[0,"gif"]},{"b5":[0,"webm"]},{"b6":[0,"mp4"]}]}]},{"group-3":[{"settings":["filetechtags","#d3d3d3","show","c_1"]},{"tags":[{"c1":[0,"audio"]}]}]}]},{"qmv_files":[]}]}'
+// Empty QuoMediaView JSON string template
+var qmv_data_template = '{"quomediaviewdb":[{"qmv_settings":[{"customthumbnails":true},{"maxshownresults":"32"},{"infoicon":"&#x2609;"},{"searchbar":"#90ee90"},{"blocklist":"#ffc0cb"},{"b_picture":"#808080"},{"b_animated":"#ffa500"},{"b_video":"#0000ff"},{"version":"1.0"},{"baselocation":""},{"chosentheme":"ultradark"},{"filethumbaspectratio":true},{"filethumbsize":192},{"sidepanelwidth":36},{"leftmouseclick":"sidepanelpreview"},{"previewresults":true},{"resultsviewmode":"gridview"}]},{"qmv_folders":[{"0":""}]},{"qmv_tags":[{"group-1":[{"settings":["bordergridtags","#008000","show","a_3"]},{"tags":[{"a1":[0,"picture"]},{"a2":[0,"animation"]},{"a3":[0,"video"]}]}]},{"group-2":[{"settings":["filetypetags","#87ceeb","show","b_6"]},{"tags":[{"b1":[0,"jpeg"]},{"b2":[0,"png"]},{"b3":[0,"webp"]},{"b4":[0,"gif"]},{"b5":[0,"webm"]},{"b6":[0,"mp4"]}]}]},{"group-3":[{"settings":["filetechtags","#d3d3d3","show","c_1"]},{"tags":[{"c1":[0,"audio"]}]}]}]},{"qmv_files":[]}]}'
 
-// some global variables
+// Settings section
+var maxshownresults = 32 // How many files are displayed on one page
+var customthumbnails = true // Enables custom thumbnails
+var infoicon = "&#x2609;" // Info icon in the tag menu
+var baselocation = "" // Allows to fake the gallery being located elsewhere
+var filethumbaspectratio = true // Switches between square thumbnails and the ones that keep aspect ratio
+var filethumbsize = 192 // Thumbnails size in grid results view
+var sidepanelwidth = 36 // Side panel preview size
+var leftmouseclick = "sidepanelpreview" // Lets functions know what left mouse click is supposed to do
+var previewresults = true // Loads actual images or videos when they don't have custom set thumbnail, may cause performance issues on slow drives
+var resultsviewmode = "gridview" // Changing how the search results are presented - grid or list
 
-var globaldb = "" //stores loaded JSON data
-var tagscollection = [] //all tags with ID, names, count and descriptions
-var testarray = [] //testing pushing arrays and objects
+var filethumborderstyle = "solid" // Thumbnail border style //hidden - not in the settings
+var filethumbordersize = 2 // Thumbnail border size //hidden - not in the settings. Remember to adjust the margin or padding in styles.css
 
-var taggroupslen = 0 //to know how many tag groups there are without modifying data
+// Variables for functions
+var loaded_qmv = "" // Stores loaded and parsed QMV JSON data
+var tags_collection = [] // All tags with ID, names, file count and descriptions
+var search_results = [] // Stores files that matched the search
+var blocked_tags_ids = [] // Persistent blocklist for tag ids //currently not saved in QMV JSON
+var rotation_value = 0 // Keeping the rotation value when using buttons to rotate - 2 clicks on 90deg left = 180deg left
+var current_file = 0 // Current file in all section views
+var current_page = 1 // Current page in results view
+var lightbox_interval = "" // Interval for Lightbox slideshow. Timing is handled inside slideshow function
 
-var maxgridcount = 28 //how many media files are displayed on the page
-var thumbnails = true //enables thumbnails
-var infoicon = "&#x2609;" //stores used icon for info on tags
-var baselocation = "" //allows to simulate the gallery being located elsewhere
-var gridaspectratio = true //switches between square thumbnails and the ones that keep aspect ratio
-var gridthumbsize = 192 //stores thumbnails size for custom values
-var gridborderstyle = "solid" //hidden setting for thumbnail border style
-var gridbordersize = 2 //hidden setting for thumbnail border size. Remember to adjust the margin or padding in styles.css
-var sidepanelwidth = 36 //side panel preview width that will be removed from main grid view
-var leftmclick = "sidepreviewpanel" //for functions to know what left mouse click needs to activate
-var previewresults = true //loads actual images or videos when they don't have custom set thumbnail
-var resultsviewmode = "gridview" //setting for changing how the search results are presented - grid or list
 
-var rotationvalue = 0 //for changing the rotation of viewed files
 
-var searchquery = "" //keeps current search without blocklist
-var inbigview = 0 //current media in big view box
-var inmediaedit = 0 //current media in media edit
-var currentpage = 1 //current page
-var changeguard = 0 //keeps track of any changes to tags/files/settings
-var insidepanelpreview = 0 //current media in side panel preview
-var sidepreviewpanelactive = false //keeps track if the side panel is currently visible
-
-var lightboxtimer = "" //time interval for lightbox slideshow
-
-//shows warning icon to remind that there were made any changes to the database
-function changesnotify() {
-	if (changeguard === 1) {
-		document.getElementById("savenotifier").style.visibility = "visible"
-		window.onbeforeunload = function(){
-		return "Do you want to leave?"
-		}
-	}
-}
-
-//keeps page from closing after making changes
-if (changeguard === 1) {
-	window.onbeforeunload = function(){
-		return "Do want to leave?"
-	}
-}
-
-// to view files with tags, details, path and few test tools
-function singlemediaview() {
-	document.getElementById("maingridview").style.display = "none"
-	document.getElementById("singlemediaview").style.display = "block"
-	document.getElementById("menucontrols").removeChild(document.getElementById("settings"))
-	document.getElementById("menu").removeChild(document.getElementById("menulist"))
-	var locationstring = decodeURI(window.location.hash)
-	var mediaparams = locationstring.split("#")
-	var filetype = mediaparams[2].split(".")[1].toLowerCase()
-	if (filetype === "mp4" || filetype === "webm" || filetype === "ogg") {
-		document.getElementById("mainframe").innerHTML = "<video id='mainvideo' class='mainmedia' src='" + mediaparams[2] + "' oncanplay='singlemediaview_continued()' controls>Your browser doesn't display videos.</video>"
-	} else {
-		document.getElementById("mainframe").innerHTML = "<span id='mainpicturelink'><img src='" + mediaparams[2] + "' id='mainpicture' class='mainmedia' onload='singlemediaview_continued()'/></span>"
-	}
-}
-
-//continues loading details when picture or video is loaded
-function singlemediaview_continued() {
-	var locationstring = decodeURI(window.location.hash)
-	var mediaparams = locationstring.split("#")
-	//mediaparams[2] - relative path
-	//mediaparams[3] - tag names
-	//mediaparams[4] - media description
-	var tagnamesarray = mediaparams[3].split(",")
-	var description = ""
-	if (mediaparams.length === 5) {
-		description = mediaparams[4]
-	}
-	
-	document.getElementById("menu").innerHTML += "<h4>File info</h4><hr />"
-	document.getElementById("menu").innerHTML += "Relative path:<ul id='smv_filepath' class='smv_list'><li>" + mediaparams[2] + "</li></ul>"
-	document.getElementById("menu").innerHTML += "Tags:<ul id='smv_filetags' class='smv_list'></ul>"
-	var linktagslen = tagnamesarray.length
-	for (var i = 0; i < linktagslen; i++) {
-		tagname = tagnamesarray[i].replaceAll("_"," ")
-		document.getElementById("smv_filetags").innerHTML += "<li>" + tagname + "</li>"
-	}
-	if (description !== "") {
-		document.getElementById("menu").innerHTML += "Description:<ul id='smv_description' class='smv_list'><li>" + description + "</li></ul>"
-	}
-	
-	
-	var filewidth = ""
-	var fileheight = ""
-	
-	var filetype = mediaparams[2].split(".")[1].toLowerCase()
-	if (filetype === "mp4" || filetype === "webm" || filetype === "ogg") {
-		document.getElementById("mainframe").innerHTML = "<video id='mainvideo' class='mainmedia' src='" + mediaparams[2] + "' controls>Your browser doesn't display videos.</video>"
-		
-		/*
-		document.getElementById("menu").innerHTML += "Details:<ul id='smv_details' class='smv_list'></ul>"
-		
-		//nothing below works here but in web console it works, maybe because of browsers don't allowing autoplay or something
-		document.getElementById("smv_details").innerHTML += "<li>Duration: " + document.getElementById("mainvideo").duration + "</li>"
-		filewidth = document.getElementById("mainvideo").videoHeight
-		fileheight = document.getElementById("mainvideo").videoWidth
-		*/
-		
-		document.getElementById("menu").innerHTML += "<hr /><h4>Tools:</h4><button id='smv_rotleft' onclick='filerotate(\"mainvideo\",\"left\")'>&#x21B6;</button><button id='smv_rotright' onclick='filerotate(\"mainvideo\",\"right\")'>&#x21B7;</button>"
-	} else {
-		document.getElementById("mainframe").innerHTML = "<span id='mainpicturelink'><img src='" + mediaparams[2] + "' id='mainpicture' class='mainmedia'/></span>"
-		document.getElementById("menu").innerHTML += "Details:<ul id='smv_details' class='smv_list'></ul>"
-		document.getElementById("menu").innerHTML += "Current path:<ul id='smv_filecurrentpath' class='smv_list'><li>" + document.getElementById("mainpicture").currentSrc.replace("%20"," ") + "</li></ul>"
-		filewidth = document.getElementById("mainpicture").naturalWidth
-		fileheight = document.getElementById("mainpicture").naturalHeight
-		document.getElementById("smv_details").innerHTML += "<li>Width: " + filewidth + "</li>"
-		document.getElementById("smv_details").innerHTML += "<li>Height: " + fileheight + "</li>"
-		document.getElementById("menu").innerHTML += "<hr /><h4>Tools:</h4><button id='smv_rotleft' onclick='filerotate(\"mainpicture\",\"left\")'>&#x21B6;</button><button id='smv_rotright' onclick='filerotate(\"mainpicture\",\"right\")'>&#x21B7;</button>"
-	}
-}
-
-//test tool to rotate viewed files
-function filerotate(rotationid,direction) {
-	if (direction === "right") {
-		rotationvalue += 90
-	}
-	if (direction === "left") {
-		rotationvalue -= 90
-	}
-	document.getElementById(rotationid).style.transform = "rotate(" + rotationvalue + "deg)"
-}
-
-//loading single media view or loading full database automatically
-if (decodeURI(window.location.hash).startsWith("#qmv_smv")) {
-	singlemediaview()
-} else if (qmvdbholder !== "") {
-	document.getElementById("loader").value = qmvdbholder
+// Loads single media view or full database automatically
+if (decodeURI(window.location).search("qmv_mode=singlefileview") !== -1) {
+	section_open("singlefileview")
+} else if (qmv_data_autoload_holder !== "") {
+	document.getElementById("qmvjson_loadinput").value = qmv_data_autoload_holder
 	loading()
 }
 
-//loading empty DB
-function loademptyqmv() {
-	document.getElementById("loader").value = qmvdbtemplate
-	loading()
-}
-
-// to load JSON string
+// Loads QMV JSON string with settings and other needed things
 function loading() {
-	var loaddata = document.getElementById("loader")
-	globaldb = JSON.parse(loaddata.value)
-	document.getElementById("jsonsaveholder").value = ""
-	
+	var loaddata = document.getElementById("qmvjson_loadinput")
+	loaded_qmv = JSON.parse(loaddata.value)
+	document.getElementById("qmv_json_export_holder").value = ""
+	qmvsettings_updater()
 	//loading settings
-	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
+	var settingslen = loaded_qmv.quomediaviewdb[0].qmv_settings.length
 	for (var i = 0; i < settingslen; i++) {
-		switch (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0]) {
-			case "thumbnails":
-				thumbnails = globaldb.quomediaviewdb[0].qmv_settings[i].thumbnails
-				document.getElementById("sidesett_thumb").checked = thumbnails
+		switch (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0]) {
+			case "customthumbnails":
+				customthumbnails = loaded_qmv.quomediaviewdb[0].qmv_settings[i].customthumbnails
+				document.getElementById("sidesetting_customthumbnails").checked = customthumbnails
 				break;
-			case "gridcount":
-				maxgridcount = globaldb.quomediaviewdb[0].qmv_settings[i].gridcount
-				document.getElementById("sidesett_maxgrid").value = maxgridcount
+			case "maxshownresults":
+				maxshownresults = loaded_qmv.quomediaviewdb[0].qmv_settings[i].maxshownresults
+				document.getElementById("sidesetting_maxshownresults").value = maxshownresults
 				break;
 			case "infoicon":
-				infoicon = globaldb.quomediaviewdb[0].qmv_settings[i].infoicon
-				document.getElementById("sidesett_infoicon").value = infoicon
+				infoicon = loaded_qmv.quomediaviewdb[0].qmv_settings[i].infoicon
+				document.getElementById("sidesetting_infoicon").value = infoicon
 				break;
 			case "searchbar":
-				document.getElementById("easystylechange_searchbar").innerHTML += "#searchbar {background-color:" + globaldb.quomediaviewdb[0].qmv_settings[i].searchbar + "}"
-				document.getElementById("sidesett_searchbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].searchbar
+				document.getElementById("easystylechange_searchbar").innerHTML += "#searchbar {background-color:" + loaded_qmv.quomediaviewdb[0].qmv_settings[i].searchbar + "}"
+				document.getElementById("sidesetting_searchbar").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].searchbar
 				break;
-			case "banbar":
-				document.getElementById("easystylechange_blockbar").innerHTML += "#banbar {background-color:" + globaldb.quomediaviewdb[0].qmv_settings[i].banbar + "}"
-				document.getElementById("sidesett_blockbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].banbar
+			case "blocklist":
+				document.getElementById("easystylechange_blocklist").innerHTML += "#blocklist {color:" + loaded_qmv.quomediaviewdb[0].qmv_settings[i].blocklist + "}"
+				document.getElementById("sidesetting_blocklist").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].blocklist
 				break;
 			case "b_picture":
-				document.getElementById("easystylechange_b_picture").innerHTML += ".picture {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_picture + "}"
-				document.getElementById("sidesett_b_picture").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_picture
+				document.getElementById("easystylechange_b_picture").innerHTML += ".picture {border: " + filethumbordersize + "px " + filethumborderstyle + " " + loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_picture + "}"
+				document.getElementById("sidesetting_b_picture").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_picture
 				break;
 			case "b_animated":
-				document.getElementById("easystylechange_b_animated").innerHTML += ".animated {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_animated + "}"
-				document.getElementById("sidesett_b_animated").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_animated
+				document.getElementById("easystylechange_b_animated").innerHTML += ".animated {border: " + filethumbordersize + "px " + filethumborderstyle + " " + loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_animated + "}"
+				document.getElementById("sidesetting_b_animated").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_animated
 				break;
 			case "b_video":
-				document.getElementById("easystylechange_b_video").innerHTML += ".video {border: " + gridbordersize + "px " + gridborderstyle + " " + globaldb.quomediaviewdb[0].qmv_settings[i].b_video + "}"
-				document.getElementById("sidesett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
+				document.getElementById("easystylechange_b_video").innerHTML += ".video {border: " + filethumbordersize + "px " + filethumborderstyle + " " + loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_video + "}"
+				document.getElementById("sidesetting_b_video").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_video
 				break;
 			case "baselocation":
-				baselocation = globaldb.quomediaviewdb[0].qmv_settings[i].baselocation
-				document.getElementById("sidesett_baselocation").value = baselocation
+				baselocation = loaded_qmv.quomediaviewdb[0].qmv_settings[i].baselocation
+				document.getElementById("sidesetting_baselocation").value = baselocation
 				break;
 			case "chosentheme":
-				document.getElementById("themingfile").href = "qmvfiles/theme_" + globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme + ".css"
-				if (globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme === "ultradark") {
-					document.getElementById("darkthemesw").checked = true
-				} else if (globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme === "lightlite") {
-					document.getElementById("lightthemesw").checked = true
-				} else {
-					document.getElementById("darkthemesw").checked = false
+				document.getElementById("themingfile").href = "qmvfiles/theme_" + loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme + ".css"
+				if (loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme === "ultradark") {
+					document.getElementById("sidesetting_chosentheme_ultradark").checked = true
+				} else if (loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme === "lightlite") {
+					document.getElementById("sidesetting_chosentheme_lightlite").checked = true
 				}
 				break;
-			case "aspectratio":
-				gridaspectratio = globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio
-				document.getElementById("sidesett_aspratio").checked = globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio
+			case "filethumbaspectratio":
+				filethumbaspectratio = loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbaspectratio
+				document.getElementById("sidesetting_filethumbaspectratio").checked = loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbaspectratio
 				break;
-			case "thumbsize":
-				gridthumbsize = globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize
-				document.getElementById("sidesett_thmbsize").value = globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize
+			case "filethumbsize":
+				filethumbsize = loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbsize
+				document.getElementById("sidesetting_filethumbsize").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbsize
 				break;
 			case "sidepanelwidth":
-				sidepanelwidth = globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth
-				document.getElementById("sidesett_sppsize").value = globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth
+				sidepanelwidth = loaded_qmv.quomediaviewdb[0].qmv_settings[i].sidepanelwidth
+				document.getElementById("sidesetting_sidepanelwidth").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].sidepanelwidth
 				break;
-			case "leftmclick":
-				leftmclick = globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick
-				if (globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick === "sidepreviewpanel") {
-					document.getElementById("sidesett_sidepanelsw").checked = true
-				} else if (globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick === "lightbox") {
-					document.getElementById("sidesett_lightboxsw").checked = true
+			case "leftmouseclick":
+				leftmouseclick = loaded_qmv.quomediaviewdb[0].qmv_settings[i].leftmouseclick
+				if (loaded_qmv.quomediaviewdb[0].qmv_settings[i].leftmouseclick === "sidepanelpreview") {
+					document.getElementById("sidesetting_leftmouseclick_sidepanelpreview").checked = true
+				} else if (loaded_qmv.quomediaviewdb[0].qmv_settings[i].leftmouseclick === "lightbox") {
+					document.getElementById("sidesetting_leftmouseclick_lightbox").checked = true
 				}
 				break;
 			case "previewresults":
-				previewresults = globaldb.quomediaviewdb[0].qmv_settings[i].previewresults
-				document.getElementById("sidesett_prevresults").checked = globaldb.quomediaviewdb[0].qmv_settings[i].previewresults
+				previewresults = loaded_qmv.quomediaviewdb[0].qmv_settings[i].previewresults
+				document.getElementById("sidesetting_previewresults").checked = loaded_qmv.quomediaviewdb[0].qmv_settings[i].previewresults
 				break;
 			case "resultsviewmode":
-				resultsviewmode = globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode
-				if (globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode === "gridview") {
-					document.getElementById("sidesett_gridressw").checked = true
-				} else if (globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode === "listview") {
-					document.getElementById("sidesett_listressw").checked = true
+				resultsviewmode = loaded_qmv.quomediaviewdb[0].qmv_settings[i].resultsviewmode
+				if (loaded_qmv.quomediaviewdb[0].qmv_settings[i].resultsviewmode === "gridview") {
+					document.getElementById("sidesetting_resultsviewmode_gridview").checked = true
+				} else if (loaded_qmv.quomediaviewdb[0].qmv_settings[i].resultsviewmode === "listview") {
+					document.getElementById("sidesetting_resultsviewmode_listview").checked = true
 				}
+				break;
+			case "version":
+				document.getElementById("qmv_stats_version").innerHTML = loaded_qmv.quomediaviewdb[0].qmv_settings[i].version
+				break;
+			case "creationdate":
+				document.getElementById("qmv_stats_data").innerHTML = loaded_qmv.quomediaviewdb[0].qmv_settings[i].creationdate
 				break;
 		}
 	}
-	gridthumbupdt()
-	qmvsettings_updater()
-	document.getElementById("settings").style.visibility = "visible"
-	document.getElementById("mediagrid").removeChild(document.getElementById("qmvdbstarting"))
-	tagsmenu()
+	var folders_length = loaded_qmv.quomediaviewdb[1].qmv_folders.length
+	for (var i = 0; i < folders_length; i++) {
+		var folderid = Object.keys(loaded_qmv.quomediaviewdb[1].qmv_folders[i])
+		document.getElementById("qmv_available_folders_list").innerHTML += "<option value='" + loaded_qmv.quomediaviewdb[1].qmv_folders[i][folderid] + "'></option>"
+	}
+	thumbnails_styling()
+	document.getElementById("functionless_logo").style.display = "none"
+	document.getElementById("qmv_logo").style.display = "inline"
+	document.getElementById("menu_controls").style.display = "block"
+	document.getElementById("searchresults_main").removeChild(document.getElementById("qmvloadingsection"))
+	document.getElementById("searchresults_pagination").style.display = "block"
+	render_tags("start")
 }
 
-// to display menu from JSON database
-function tagsmenu() {
-	var listtowrite = ""
-	tagscollection = []
-	document.getElementById("availabletags").innerHTML = ""
-	var filegroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-	for (var i = 0; i < filegroupslen; i++) {
-		var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-		var tagscolor = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[1]
-		var alltagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-		for (var j = 0; j < alltagslen; j++) {
-			var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0]
-			var taglen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid].length
-			var tagname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][1]
-			document.getElementById("availabletags").innerHTML += "<option value='" + tagname + "'>"
-			tagscollection.push(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])
-			if (globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[2] === "show") {
-				listtowrite += "<li><a style='text-decoration:none;color:" + tagscolor + ";' href='' onclick='document.getElementById(\"banbar\").value += \"" + tagname + " \"; return false'>[-]</a> <a style='text-decoration:none;color:" + tagscolor + ";' href='' onclick='document.getElementById(\"searchbar\").value += \"" + tagname + " \"; return false'>" + tagname.replaceAll("_", " ") + " (" + globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][0] + ")</a>"
-				
-				// checks if the tag has description
-				if (taglen === 3 && globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][2] !== "") {
-					listtowrite += " <a style='text-decoration:none;color:" + tagscolor + ";'href='' onclick='alert(\"" + globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][2] + "\"); return false'>" + infoicon + "</a></li>"
-				} else {
-					listtowrite += "</li>"
-				}
-			}
-		} 
-	}
-	document.getElementById("tagslist").innerHTML = listtowrite
-	searching("")
-}
-
-// to search files matching the searched tags or all files
-function searching(tagname) {
-	searchquery = tagname.trim()
-	// special case when all files are displayed
-	if (tagname.trim() === "") {
-		testarray = []
-		var allfileslen = globaldb.quomediaviewdb[3].qmv_files.length
-		var tagscollectionlen = tagscollection.length
-		for (var i = 0; i < allfileslen; i++) {
-			var arrayholder = []
-			var fileid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0]
-			var filedatalen = globaldb.quomediaviewdb[3].qmv_files[i][fileid].length
-			var filepath = ""
-			var filename = ""
-			var filetagnames = []
-			var filetagids = []
-			var filethumbpath = ""
-			var filethumbname = ""
-			var filedescription = ""
-			var fileborder = ""
-			for (var j = 0; j < filedatalen; j++) {
-				var filedataid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0]
-				switch (filedataid) {
-					case "name":
-						var folderid = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].name[1]
-						filepath = ""
-						var folderslen = globaldb.quomediaviewdb[1].qmv_folders.length
-						for (var p = 0; p < folderslen; p++) {
-							if (Object.keys(globaldb.quomediaviewdb[1].qmv_folders[p])[0] === folderid) {
-								filepath = globaldb.quomediaviewdb[1].qmv_folders[p][folderid]
-							}
-						}
-						filename = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].name[0]
-						break;
-					case "tags":
-						var filetagslen = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags.length
-						for (var k = 0; k < filetagslen; k++) {
-							switch (globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags[k]) {
-								case "a1":
-									fileborder = "picture"
-									break;
-								case "a2":
-									fileborder = "animated"
-									break;
-								case "a3":
-									fileborder = "video"
-									break;
-							}
-							for (var l = 0; l < tagscollectionlen; l++) {
-								var tagscollectionid = Object.keys(tagscollection[l])[0]
-								if (globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags[k] === tagscollectionid) {
-									filetagnames.push(tagscollection[l][tagscollectionid][1])
-									filetagids.push(tagscollectionid)
-								}
-							}
-						}
-						break;
-					case "thmb":
-						var thmbfolderid = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].thmb[1]
-						filethumbpath = globaldb.quomediaviewdb[1].qmv_folders[thmbfolderid]
-						for (var q = 0; q < folderslen; q++) {
-							if (Object.keys(globaldb.quomediaviewdb[1].qmv_folders[q])[0] === thmbfolderid) {
-								filethumbpath = globaldb.quomediaviewdb[1].qmv_folders[q][thmbfolderid]
-							}
-						}
-						filethumbname = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].thmb[0]
-						break;
-					case "desc":
-						filedescription = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j][filedataid]
-						break;
-				}
-			
-				//checks if it is the last loop
-				if (j === filedatalen - 1) {
-					arrayholder.push(fileid,filepath,filename,filethumbpath,filethumbname,fileborder,filetagids,filetagnames,filedescription)
-					testarray.push(arrayholder)
-				}			
-			}
-		}
-		searchreverser()
-		displaytemptest()
-	} else {
-		testarray = []
-		var allfileslen = globaldb.quomediaviewdb[3].qmv_files.length
-		var tagscollectionlen = tagscollection.length
-		for (var i = 0; i < allfileslen; i++) {
-			var arrayholder = []
-			var fileid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0]
-			var filedatalen = globaldb.quomediaviewdb[3].qmv_files[i][fileid].length
-			var filepath = ""
-			var filename = ""
-			var filetagnames = []
-			var filetagids = []
-			var filethumbpath = ""
-			var filethumbname = ""
-			var filedescription = ""
-			var fileborder = ""
-			for (var j = 0; j < filedatalen; j++) {
-				var filedataid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0]
-				switch (filedataid) {
-					case "name":
-						var folderid = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].name[1]
-						filepath = ""
-						var folderslen = globaldb.quomediaviewdb[1].qmv_folders.length
-						for (var p = 0; p < folderslen; p++) {
-							if (Object.keys(globaldb.quomediaviewdb[1].qmv_folders[p])[0] === folderid) {
-								filepath = globaldb.quomediaviewdb[1].qmv_folders[p][folderid]
-							}
-						}
-						filename = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].name[0]
-						break;
-					case "tags":
-						var filetagslen = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags.length
-						for (var k = 0; k < filetagslen; k++) {
-							switch (globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags[k]) {
-								case "a1":
-									fileborder = "picture"
-									break;
-								case "a2":
-									fileborder = "animated"
-									break;
-								case "a3":
-									fileborder = "video"
-									break;
-							}
-							for (var l = 0; l < tagscollectionlen; l++) {
-								var tagscollectionid = Object.keys(tagscollection[l])[0]
-								if (globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags[k] === tagscollectionid) {
-									filetagnames.push(tagscollection[l][tagscollectionid][1])
-									filetagids.push(tagscollectionid)
-								}
-							}
-						}
-						break;
-					case "thmb":
-						var thmbfolderid = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].thmb[1]
-						filethumbpath = globaldb.quomediaviewdb[1].qmv_folders[thmbfolderid]
-						for (var q = 0; q < folderslen; q++) {
-							if (Object.keys(globaldb.quomediaviewdb[1].qmv_folders[q])[0] === thmbfolderid) {
-								filethumbpath = globaldb.quomediaviewdb[1].qmv_folders[q][thmbfolderid]
-							}
-						}
-						filethumbname = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].thmb[0]
-						break;
-					case "desc":
-						filedescription = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j][filedataid]
-						break;
-				}
-			
-				//checks if it is the last loop
-				if (j === filedatalen - 1) {
-					arrayholder.push(fileid,filepath,filename,filethumbpath,filethumbname,fileborder,filetagids,filetagnames,filedescription)
-					testarray.push(arrayholder)
-				}			
-			}
-		}
-		var searchresultsarraylen = testarray.length
-		var searchedtags = tagname.trim().split(" ")
-		var searchedtagslen = searchedtags.length
-		var tempresultsarray = []
-		for (var m = 0; m < searchresultsarraylen; m++) {
-			var filetagslen = testarray[m][7].length
-			searchstring = ""
-			for (var n = 0; n < searchedtagslen; n++) {
-				for (var o = 0; o < filetagslen; o++) {
-					if (testarray[m][7][o] === searchedtags[n]) {
-						searchstring += "1"
-					} else {
-						searchstring += "0"
-					}
-				}
-				var checking = (searchstring.match(/1/g)||[]).length
-				if (n === searchedtagslen - 1 && checking === searchedtagslen) {
-					tempresultsarray.push(testarray[m])
-				}
-			}
-		}
-		testarray = tempresultsarray
-		searchreverser()
-		displaytemptest()
-	}
-}
-
-//removing matched files from search
-function banning(tagname) {
-	var searchresultsarraylen = testarray.length
-	var searchedtags = tagname.trim().split(" ")
-	var searchedtagslen = searchedtags.length
-	var filestoban = []
-	for (var i = 0; i < searchresultsarraylen; i++) {
-		var filetagslen = testarray[i][7].length
-		for (var j = 0; j < searchedtagslen; j++) {
-			for (var k = 0; k < filetagslen; k++) {
-				if (testarray[i][7][k] === searchedtags[j]) {
-					filestoban.push(i)
-				}
-			}
-		}
-		if (i === searchresultsarraylen - 1) {
-			filestoban.sort(function(a, b){return b - a})
-			var filestobanlen = filestoban.length
-			for (var l = 0; l < filestobanlen; l++) {
-				testarray.splice(filestoban[l],1)
-			}
-		}
-	}
-	displaytemptest()
-}
-
-// to show newest files on the start of array
-function searchreverser() {
-	testarray.reverse()
-}
-
-//displays the files and subpages
-function displaytemptest() {
-	document.getElementById("mediagrid").innerHTML = ""
-	if (resultsviewmode === "listview") {
-		document.getElementById("mediagrid").innerHTML = "<table id='resultslisttable'><thead><tr><th>Icon</th><th>File Name</th><th>Type</th></tr></thead><tbody id='resultstableinside'></tbody></table>"
-	}
-	var gridlen = testarray.length
-	var startid = (maxgridcount * currentpage) - maxgridcount
-	var endid = maxgridcount * currentpage
-	for (; startid < endid; startid++) {
-		
-		if (testarray[startid] != undefined) {
-			//testarray[startid][0] - file id
-			//testarray[startid][1]	- file path
-			//testarray[startid][2] - file name
-			//testarray[startid][3]	- thumbnail path
-			//testarray[startid][4] - thumbnail name
-			//testarray[startid][5] - type of border
-			//testarray[startid][6] - tag ids of the file
-			//testarray[startid][7] - tag names of the file
-			//testarray[startid][8] - description
-			
-			var disp_fullpath = testarray[startid][1] + testarray[startid][2]
-			var disp_fullthumbpath = testarray[startid][3] + testarray[startid][4]
-			var disp_border = testarray[startid][5]
-			var disp_description = testarray[startid][8]
-			var disp_linktags = ""
-			var preloadcheck = ""
-			if (previewresults !== true) {
-				preloadcheck = "qmv/fileloadblocker"
-			}
-			var filetagslen = testarray[startid][7].length
-			for (var i = 0; i < filetagslen; i++) {
-				if (i === filetagslen - 1) {
-					disp_linktags += testarray[startid][7][i]
-				} else {
-					disp_linktags += testarray[startid][7][i] + ","
-				}
-			}
-			
-			if (resultsviewmode === "gridview") {
-				if (testarray[startid][5] === "video") {
-					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-						if (testarray[startid][8] !== "") {
-							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-						} else {
-							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-						}
-					} else {
-						if (preloadcheck !== "") {
-							if (testarray[startid][8] !== "") {
-								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-							} else {
-								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-							}
-						} else {
-							if (testarray[startid][8] !== "") {
-								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><video src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-							} else {
-								document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><video src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-							}
-						}
-					}
-				} else {
-					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-						if (testarray[startid][8] !== "") {
-							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-						} else {
-							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + baselocation + disp_fullthumbpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-						}
-					} else {
-						if (testarray[startid][8] !== "") {
-							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "#" + disp_description + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-						} else {
-							document.getElementById("mediagrid").innerHTML += "<div class='thmbnl_box' onclick='lmouseclickredirect(" + startid + ")'><a href='quomediaview.html#qmv_smv#" + baselocation + disp_fullpath + "#" + disp_linktags + "' class='linklesslink'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='thmbnl " + disp_border + "' /></a></div>"
-						}
-					}
-				}
-			} else if (resultsviewmode === "listview") {
-				if (testarray[startid][5] === "video") {
-					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-						document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + baselocation + disp_fullthumbpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
-					} else {
-						if (preloadcheck !== "") {
-							document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
-						} else {
-							document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><video src='" + preloadcheck + baselocation + disp_fullpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
-						}
-					}
-				} else {
-					if (thumbnails === true && testarray[startid][3] !== "" && testarray[startid][4] !== "") {
-						document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + baselocation + disp_fullthumbpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
-					} else {
-						document.getElementById("resultstableinside").innerHTML += "<tr onclick='lmouseclickredirect(" + startid + ")'><td>" + "<div class='listviewiconbox'><img src='" + preloadcheck + baselocation + disp_fullpath + "' class='listviewicon " + disp_border + "' /></div>" + "</td><td>" + testarray[startid][2] + "</td><td>" + testarray[startid][5] + "</td></tr>"
-					}
-				}
-			}
-		}
-	}
-	
-	var pagesamount = Math.ceil(gridlen / maxgridcount)
-	document.getElementById("navlist").innerHTML = ""
-	
-	if (pagesamount < 11) {
-		for (var i = 1; i <= pagesamount; i++) {
-			if (i === currentpage) {
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + i + "</li></a>"
-			} else {
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-			}
-			
-			if (i === pagesamount) {
-			document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-			}
-		} 
-	} else {
-			
-		//rework this later to make it have just a little dignity
-		switch (currentpage) {
-			case 1:
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + 1 + "</li></a>" //case here
-				for (var i = 2; i <= 8; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + pagesamount + "; displaytemptest(); return false'><li>" + pagesamount + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case 2:
-				for (var i = 1; i < 2; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = 3; i <= 8; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + pagesamount + "; displaytemptest(); return false'><li>" + pagesamount + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case 3:
-				for (var i = 1; i < 3; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = 4; i <= 8; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + pagesamount + "; displaytemptest(); return false'><li>" + pagesamount + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case 4:
-				for (var i = 1; i < 4; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = 5; i <= 8; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + pagesamount + "; displaytemptest(); return false'><li>" + pagesamount + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case 5:
-				for (var i = 1; i < 5; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = 6; i <= 8; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + pagesamount + "; displaytemptest(); return false'><li>" + pagesamount + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-			
-			//not requiring special	treatment
-			default:
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + 1 + "; displaytemptest(); return false'><li>" + 1 + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				for (var i = currentpage - 3; i < currentpage; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = currentpage + 1; i < currentpage + 4; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + pagesamount + "; displaytemptest(); return false'><li>" + pagesamount + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-			//happy
-			
-			case pagesamount - 4:
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + 1 + "; displaytemptest(); return false'><li>" + 1 + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				for (var i = pagesamount - 7; i < pagesamount - 4; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = pagesamount - 3; i <= pagesamount; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case pagesamount - 3:
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + 1 + "; displaytemptest(); return false'><li>" + 1 + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				for (var i = pagesamount - 7; i < pagesamount - 3; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = pagesamount - 2; i <= pagesamount; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case pagesamount - 2:
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + 1 + "; displaytemptest(); return false'><li>" + 1 + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				for (var i = pagesamount - 7; i < pagesamount - 2; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = pagesamount - 1; i <= pagesamount; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case pagesamount - 1:
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + 1 + "; displaytemptest(); return false'><li>" + 1 + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				for (var i = pagesamount - 7; i < pagesamount - 1; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + currentpage + "</li></a>" //case here
-				for (var i = pagesamount; i <= pagesamount; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-				
-			case pagesamount:
-				document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + 1 + "; displaytemptest(); return false'><li>" + 1 + "</li></a>"
-				document.getElementById("navlist").innerHTML += "<a href=''><li class='hiddennavpage'>...</li></a>"
-				for (var i = pagesamount - 7; i < pagesamount; i++) {
-					document.getElementById("navlist").innerHTML += "<ul><a href='' onclick='currentpage = " + i + "; displaytemptest(); return false'><li>" + i + "</li></a>"
-				}
-				document.getElementById("navlist").innerHTML += "<ul><li id='currentpage'>" + pagesamount + "</li></a>" //case here
-				document.getElementById("navlist").innerHTML += "<li id='pageselect'><form autocomplete='off' id='navpageform' onsubmit='currentpage = document.getElementById(\"navpageselect\").value * 1; displaytemptest(); return false'><input type='number' id='navpageselect' value='1' min='1'/></form></li></ul>"
-				break;
-		}		
-	}
-
-	//change page title with some info
-	if (searchquery === "") {
-		document.getElementById("pagetitle").innerHTML = searchquery + "page " + currentpage + " of " + pagesamount + " (" + testarray.length + ") | QuoMediaView"
-	} else {
-		document.getElementById("pagetitle").innerHTML = searchquery + " | page " + currentpage + " of " + pagesamount + " (" + testarray.length + ") | QuoMediaView"
-	}
-	linksdisabler()
-}
-
-//prevents opening images with left mouse button
-function linksdisabler() {
-	var imagelinks = document.getElementsByClassName("linklesslink");
-	var imagelinkslen = imagelinks.length
-	for (var i = 0; i < imagelinkslen; i++) {
-		imagelinks[i].addEventListener("click", function(event){event.preventDefault()});
-	}
-}
-
-//opens big viewer
-function bigviewer(chosenmedia) {
-	document.getElementById("menu").style.display = "none"
-	document.getElementById("maingridview").style.display = "none"
-	document.getElementById("bigviewbox").style.display = "block"
-	inbigview = chosenmedia * 1
-	document.getElementById("mediabig").innerHTML = chosenmedia
-	document.getElementById("bvb_sidepanelbtnparent").innerHTML = "<input type='button' onclick='insidepanelpreview = " + inbigview + "; sidepanelpreviewer()' value='Side panel' title='Open file in Side panel' id='bvb_sidepanelbtn' />"
-	document.getElementById("bvb_editbtnparent").innerHTML = "<input type='button' onclick='inmediaedit = " + inbigview + "; editmedia()' value='Edit' title='Open file in edit mode' id='bvb_editbtn' />"
-	var disp_linktags = ""
-	var filetagslen = testarray[chosenmedia][7].length
-	for (var i = 0; i < filetagslen; i++) {
-		if (i === filetagslen - 1) {
-			disp_linktags += testarray[chosenmedia][7][i]
+// Renders tags in 3 places - menu, filesedit and tagsedit
+function render_tags(action) {
+	var list_holder = ""
+	var file_tags_holder = ""
+	var tags_edit_holder = ""
+	tags_collection = []
+	document.getElementById("available_tags_datalist").innerHTML = ""
+	var taggroups_length = loaded_qmv.quomediaviewdb[2].qmv_tags.length
+	for (var i = 0; i < taggroups_length; i++) {
+		var group_id = Object.keys(loaded_qmv.quomediaviewdb[2].qmv_tags[i])[0]
+		var group_name = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[0]
+		var color = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[1]
+		var show_check = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[2]
+		file_tags_holder += "<span id='" + group_id + "_section' class='tagcellsgroup' style='color: " + color + "'>"
+		tags_edit_holder += "<div id='tg_div_" + i + "'><input type='text' id='" + group_id + "_n' value='" + group_name.replaceAll("_", " ") + "' onchange='tags_changer(\"group\",\"" + group_id + "\",\"name\")'/> <label for='" + group_id + "_c'>Color:</label><input type='color' id='" + group_id + "_c' value='" + color + "' onchange='tags_changer(\"group\",\"" + group_id + "\",\"color\")'/> <label for='" + group_id + "_h'>Hide tag group:</label><input type='checkbox' id='" + group_id + "_h' onchange='tags_changer(\"group\",\"" + group_id + "\",\"showhide\")'"
+		if (show_check === "hide") {
+			tags_edit_holder += " checked /> "
 		} else {
-			disp_linktags += testarray[chosenmedia][7][i] + ","
+			tags_edit_holder += " /> "
+		}
+		if (i !== 0) {
+			tags_edit_holder += "Delete tag group:<input type='button' onclick='tags_changer(\"group\",\"" + group_id + "\",\"delete\")' value='X' />"
+		}
+		tags_edit_holder += "<br /><br /><div id='tg_tags_" + i + "'>"
+		var group_tags_length = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags.length
+		for (var j = 0; j < group_tags_length; j++) {
+			var tag_array_holder = []
+			var tag_id = Object.keys(loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j])[0]
+			var tag_name = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][1]
+			document.getElementById("available_tags_datalist").innerHTML += "<option value='" + tag_name + "'>"
+			var tag_count = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][0]
+			var tag_description = ""
+			if (loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][2] !== undefined) {
+				tag_description = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][2]
+			}
+			file_tags_holder += "<div id='" + tag_id + "_tbd' class='tagborder clickable' style='border-color: " + color + "' onclick='file_changer(\"tag-add\",\"" + tag_id + "\")' title='" + group_name.replaceAll("_", " ") + "'>" + tag_name.replaceAll("_", " ") + "</div>"
+			tags_edit_holder += "<div id='" + tag_id + "'>* <input type='text' id='" + tag_id + "_tn' value='" + tag_name.replaceAll("_", " ") + "' onchange='tags_changer(\"tag\",\"" + tag_id + "\",\"name\")'/> <input type='text' id='" + tag_id + "_td' placeholder='description' value='" + tag_description + "' onchange='tags_changer(\"tag\",\"" + tag_id + "\",\"description\")'/> "
+			if (i !== 0) {
+				tags_edit_holder += "<input type='button' onclick='tags_changer(\"tag\",\"" + tag_id + "\",\"delete\")' value='X' />"
+			}
+			tags_edit_holder += "<br /></div></div>"
+			tag_array_holder.push(tag_id, tag_name, tag_count, color, tag_description)
+			tags_collection.push(tag_array_holder)
+			if (loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[2] === "show") {
+				list_holder += "<li><span class='menu_tag_link' style='color:" + color + "'><a href='' onclick='blocklisting(\"" + tag_id + "\",\"add\"); return false'>[-]</a> <a href='' onclick='document.getElementById(\"searchbar\").value += \"" + tag_name + " \"; return false'>" + tag_name.replaceAll("_", " ") + " (" + tag_count + ")</a>"
+				var tag_data_length = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id].length
+				if (tag_data_length === 3 && tag_description !== "") {
+					list_holder += " <a href='' onclick='tag_info_show(\"" + tag_id + "\"); return false'>" + infoicon + "</a></span></li>"
+				} else {
+					list_holder += "</span></li>"
+				}
+			}
+		}
+		if (i !== 0) {
+			file_tags_holder += "<div id='" + group_id + "_newtag' class='tagborder' style='border-color: " + color + "'>new: <input type='text' id='" + group_id + "_qc' onchange='tags_changer(\"tag\",\"" + group_id + "\",\"quickcreate\")' /></div>"
+			tags_edit_holder += "<input type='button' onclick='tags_changer(\"tag\",\"" + group_id + "\",\"create\")' value='+' />"
+		}
+		file_tags_holder += "</span>"
+		tags_edit_holder += "<br /><br /></div><br />"
+	}
+	// Loading blocklist from js variable //in future from QMV JSON
+	document.getElementById("blocklist").innerHTML = ""
+	blocklist_length = blocked_tags_ids.length
+	for (var k = 0; k < blocklist_length; k++) {
+		blocklisting(blocked_tags_ids[k],"load")
+	}
+	document.getElementById("tags_list").innerHTML = list_holder
+	document.getElementById("filesedit_tagcellsbox").innerHTML = file_tags_holder
+	document.getElementById("tagsedit_form").innerHTML = tags_edit_holder
+	document.getElementById("qmv_stats_taggroups_count").innerHTML = taggroups_length
+	document.getElementById("qmv_stats_tags_count").innerHTML = tags_collection.length
+	if (action === "start") {
+		searching("")
+	}
+}
+
+// Handles searching with given search query while skipping the files with blocked tags
+function searching(search_query) {
+	var all_files_length = loaded_qmv.quomediaviewdb[3].qmv_files.length
+	document.getElementById("qmv_stats_files_count").innerHTML = all_files_length
+	document.getElementById("qmv_stats_preloadfiles_count").innerHTML = all_files_length
+	var blocked_results = []
+	// Checking if blocklist isn't empty and searching files that include the tags in it
+	var blocked_tags_ids_length = blocked_tags_ids.length
+	if (blocked_tags_ids_length > 0) {
+		for (var blockedtag = 0; blockedtag < blocked_tags_ids_length; blockedtag++) {
+			for (var i = 0; i < all_files_length; i++) {
+				var file_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i])[0]
+				if (!blocked_results.includes(file_id)) {
+					var file_data_length = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id].length
+					for (var j = 0; j < file_data_length; j++) {
+						var file_data_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j])[0]
+						if (file_data_id === "tags") {
+							if (loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags.includes(blocked_tags_ids[blockedtag])) {
+								blocked_results.push(file_id)
+							}
+						}
+					}
+				}
+			}
 		}
 	}
-	var singlemvpath = "quomediaview.html#qmv_smv#" + baselocation + testarray[chosenmedia][1] + testarray[chosenmedia][2] + "#" + disp_linktags
-	if (testarray[chosenmedia][8] !== "") {
-		singlemvpath += "#" + testarray[chosenmedia][8]
+	var found_files = []
+	// Searching for files that match the used tags
+	var temp_found = []
+	for (var i = 0; i < all_files_length; i++) {
+		var file_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i])[0]
+		if (!blocked_results.includes(file_id)) {
+			if (search_query.trim() !== "") {
+				var searched_tags = search_query.trim().toLowerCase().split(" ")
+				var searched_tags_length = searched_tags.length
+				for (var searchedtag = 0; searchedtag < searched_tags_length; searchedtag++) {
+					if (searchedtag === 0 || temp_found.includes(file_id)) {
+						var tag_id = return_tag_id(searched_tags[searchedtag])
+						var file_data_length = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id].length
+						for (var j = 0; j < file_data_length; j++) {
+							var file_data_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j])[0]
+							if (file_data_id === "tags") {
+								if (loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags.includes(tag_id) && !temp_found.includes(file_id)) {
+									temp_found.push(file_id)
+								} else if (!loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags.includes(tag_id) && temp_found.includes(file_id)) {
+									var file_id_place =  temp_found.indexOf(file_id)
+									temp_found.splice(file_id_place,1)
+								}
+							}
+						}
+					}
+					if (searchedtag === searched_tags_length - 1) {
+						found_files = temp_found
+					}
+				}
+			} else {
+				// If search query is empty show all files
+				found_files.push(file_id)
+			}
+		}
 	}
-	document.getElementById("bvb_newtablink").href = singlemvpath
-	var filepath = baselocation + testarray[chosenmedia][1] + testarray[chosenmedia][2]
-	var filetype = testarray[chosenmedia][5]
-	if (filetype === "video") {
-		document.getElementById("mediabig").innerHTML = "<video src='" + filepath + "' class='bigmainmedia' controls>Your browser can not display videos</video>"
+	// Preparing search results in an easy to read way for rendering functions
+	search_results = []
+	current_page = 1
+	var found_files_length = found_files.length
+	var tags_collection_length = tags_collection.length
+	for (var found_file = 0; found_file < found_files_length; found_file++) {
+		for (var i = 0; i < all_files_length; i++) {
+			var file_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i])[0]
+			if (found_files[found_file] === file_id) {
+				var file_data_holder = []
+				var file_path = ""
+				var file_name = ""
+				var border = ""
+				var tags = []
+				var thumbnail_path = ""
+				var thumbnail_name = ""
+				var description = ""
+				var file_data_length = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id].length
+				for (var j = 0; j < file_data_length; j++) {
+					var file_data_nameid = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j])[0]
+					switch (file_data_nameid) {
+						case "name":
+							var file_folder_id = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].name[1]
+							var folders_length = loaded_qmv.quomediaviewdb[1].qmv_folders.length
+							for (var k = 0; k < folders_length; k++) {
+								if (Object.keys(loaded_qmv.quomediaviewdb[1].qmv_folders[k])[0] === file_folder_id) {
+									file_path = loaded_qmv.quomediaviewdb[1].qmv_folders[k][file_folder_id]
+								}
+							}
+							file_name = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].name[0]
+							break;
+						case "tags":
+							var file_tags_length = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags.length
+							var tags_holder = []
+							for (var k = 0; k < file_tags_length; k++) {
+								switch (loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags[k]) {
+									case "a1":
+										border = "picture"
+										break;
+									case "a2":
+										border = "animated"
+										break;
+									case "a3":
+										border = "video"
+										break;
+								}
+								for (var l = 0; l < tags_collection_length; l++) {
+									if (loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags[k] === tags_collection[l][0]) {
+										tags_holder.push(tags_collection[l][1])
+									}
+								}
+								if (k === file_tags_length - 1) {
+									tags.push(tags_holder)
+								} 
+							}
+							break;
+						case "thmb":
+							var thumbnail_folder_id = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].thmb[1]
+							var folders_length = loaded_qmv.quomediaviewdb[1].qmv_folders.length
+							for (var k = 0; k < folders_length; k++) {
+								if (Object.keys(loaded_qmv.quomediaviewdb[1].qmv_folders[k])[0] === thumbnail_folder_id) {
+									thumbnail_path = loaded_qmv.quomediaviewdb[1].qmv_folders[k][thumbnail_folder_id]
+								}
+							}
+							thumbnail_name = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].thmb[0]
+							break;
+						case "desc":
+							description = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].desc
+							break;
+					}
+					if (j === file_data_length - 1) {
+						file_data_holder.push(file_id,file_path,file_name,border,tags,thumbnail_path,thumbnail_name,description)
+						search_results.push(file_data_holder)
+					}
+				}
+			}
+		}
+	}
+	search_results.reverse()
+	render_results()
+}
+
+// Adding and removing tags to/from blocklist
+function blocklisting(tag_id,state) {
+	switch (state) {
+		case "add":
+			if (!blocked_tags_ids.includes(tag_id)) {
+				blocked_tags_ids.push(tag_id)
+				searching(document.getElementById('searchbar').value)
+				blocklisting(tag_id,"load")
+			}
+			break;
+		case "load":
+			document.getElementById("blocklist").innerHTML += "<div id='blocklist_" + tag_id + "' class='blocked_tag clickable' onclick='blocklisting(\"" + tag_id + "\",\"remove\")'><span class='blocked_tag_x'>X</span> " + return_tag_name(tag_id).replaceAll("_", " ") + ",</div> "
+			break;
+		case "remove":
+			var tag_id_place = blocked_tags_ids.indexOf(tag_id)
+			blocked_tags_ids.splice(tag_id_place,1)
+			searching(document.getElementById('searchbar').value)
+			document.getElementById("blocklist").removeChild(document.getElementById("blocklist_" + tag_id))
+			break;
+	}
+}
+
+// Renders the results in the main results view either in grid or list
+function render_results() {
+	document.getElementById("current_page").innerHTML = current_page
+	if (document.getElementById('searchbar').value === "") {
+		document.getElementById("pagetitle").innerHTML = document.getElementById('searchbar').value + "page " + current_page + " of " + Math.ceil(search_results.length / maxshownresults) + " (" + search_results.length + ") | QuoMediaView"
 	} else {
-		document.getElementById("mediabig").innerHTML = "<img src='" + filepath + "' class='bigmainmedia'/>"
+		document.getElementById("pagetitle").innerHTML = document.getElementById('searchbar').value + " | page " + current_page + " of " + Math.ceil(search_results.length / maxshownresults) + " (" + search_results.length + ") | QuoMediaView"
+	}
+	document.getElementById("searchresults_main").innerHTML = ""
+	if (resultsviewmode === "listview") {
+		document.getElementById("searchresults_main").innerHTML = "<table id='resultslisttable'><thead><tr><th>Icon</th><th>File Name</th><th>Type</th></tr></thead><tbody id='resultstableinside'></tbody></table>"
+	}
+	var start_position = (maxshownresults * current_page) - maxshownresults
+	var end_position = maxshownresults * current_page
+	for (; start_position < end_position; start_position++) {
+		if (search_results[start_position] != undefined) {
+			var full_path = search_results[start_position][1] + search_results[start_position][2]
+			var full_thumbnail_path = search_results[start_position][5] + search_results[start_position][6]
+			var border = search_results[start_position][3]
+			var description = search_results[start_position][7]
+			var preload_files_check = ""
+			if (previewresults !== true) {
+				preload_files_check = "qmv/fileloadblocker"
+			}
+			var linktags = ""
+			var tags_length = search_results[start_position][4].length
+			for (var i = 0; i < tags_length; i++) {
+				if (i === tags_length - 1) {
+					linktags += search_results[start_position][4][i]
+				} else {
+					linktags += search_results[start_position][4][i] + ","
+				}
+			}
+			var file_render_string = ""
+			if (resultsviewmode === "listview") {
+				file_render_string += "<tr onclick='lmc_redirect(" + start_position + ")'><td><div class='listviewiconbox'>"
+			} else {
+				file_render_string += "<div class='thmbnl_box' onclick='lmc_redirect(" + start_position + ")'><a href='quomediaview.html?qmv_mode=singlefileview&path=" + baselocation + full_path + "&tags=" + linktags + "&description=" + description + "' class='linklesslink'>"
+			}
+			if (return_file_display_tag(search_results[start_position][2]) === "video" && previewresults === true) {
+				file_render_string += "<video"
+			} else {
+				file_render_string += "<img"
+			}
+			file_render_string += " src='" + baselocation
+			if (customthumbnails === true && search_results[start_position][6] !== "") {
+				file_render_string += full_thumbnail_path
+			} else {
+				file_render_string += preload_files_check + full_path
+			}
+			file_render_string += "' class='"
+			if (resultsviewmode === "listview") {
+				file_render_string += "listviewicon " + border + "' /></div></td><td>" + search_results[start_position][2] + "</td><td>" + search_results[start_position][3] + "</td></tr>"
+			} else {
+				file_render_string += "thmbnl " + border + "' /></a></div>"
+			}
+			if (resultsviewmode === "listview") {
+				document.getElementById("resultstableinside").innerHTML += file_render_string
+			} else {
+				document.getElementById("searchresults_main").innerHTML += file_render_string
+			}
+		}
+	}
+	// Prevents opening images with left mouse button to allow opening lightbox and side panel preview
+	var image_links = document.getElementsByClassName("linklesslink");
+	var image_links_length = image_links.length
+	for (var i = 0; i < image_links_length; i++) {
+		image_links[i].addEventListener("click", function(event){event.preventDefault()});
 	}
 }
 
-//go to previous media
-function bvb_prev() {
-	if (inbigview !== 0) {
-		bigviewer(inbigview - 1)
+// Changes current page in clean way
+function pagination_pagechange(chosenpage) {
+	var pagescount = Math.ceil(search_results.length / maxshownresults)
+	switch (chosenpage) {
+		case "first":
+			if (current_page > 1) {
+				current_page = 1
+				render_results()
+			}
+			break;
+		case "previous":
+			if (current_page > 1) {
+				current_page -= 1
+				render_results()
+			}
+			break;
+		case "next":
+			if (current_page < pagescount) {
+				current_page += 1
+				render_results()
+			}
+			break;
+		case "last":
+			if (current_page < pagescount) {
+				current_page = pagescount
+				render_results()
+			}
+			break;
+		default:
+			if (chosenpage <= pagescount && chosenpage > 0 && chosenpage !== current_page) {
+				current_page = chosenpage
+				render_results()
+			}
+			break;
 	}
 }
 
-//go to next media
-function bvb_next() {
-	if (inbigview !== testarray.length - 1) {
-		bigviewer(inbigview + 1)
+// Catches the left mouse click and redirects it to selected left mouse click mode
+function lmc_redirect(mediaid) {
+	current_file = mediaid
+	section_open(leftmouseclick)
+}
+
+// Handles opening view sections
+function section_open(selectedsection) {
+	switch (selectedsection) {
+		case "lightbox":
+			document.getElementById("menu").style.display = "none"
+			document.getElementById("searchresults").style.display = "none"
+			document.getElementById("lightbox").style.display = "block"
+			document.getElementById("lightbox").setAttribute('onkeydown','shortcut_handler("lightbox",event)')
+			window.addEventListener("keydown", keyboard_shortcuts)
+			file_viewer(selectedsection)
+			break;
+		case "filesedit":
+			document.getElementById("searchresults").style.display = "none"
+			document.getElementById("lightbox").style.display = "none"
+			document.getElementById("filesedit").style.display = "block"
+			document.getElementById("menu").style.display = "block"
+			document.getElementById("menu_list").style.display = "none"
+			document.getElementById("qmvinfostats").style.display = "none"
+			document.getElementById("menu_sidesettings").style.display = "block"
+			file_viewer(selectedsection)
+			break;
+		case "sidepanelpreview":
+			document.getElementById("lightbox").style.display = "none"
+			document.getElementById("menu").style.display = "block"
+			document.getElementById("searchresults").style.display = "block"
+			document.getElementById("searchresults_main").style.width = "" + (100 - sidepanelwidth) + "%"
+			document.getElementById("sidepanelpreview").style.width = "" + sidepanelwidth + "%"
+			document.getElementById("sidepanelpreview").style.display = "block"
+			file_viewer(selectedsection)
+			break;
+		case "settings":
+			document.getElementById("menu_list").style.display = "none"
+			document.getElementById("menu_sidesettings").style.display = "block"
+			break;
+		case "tagsedit":
+			document.getElementById("menu_sidesettings").style.display = "none"
+			document.getElementById("searchresults").style.display = "none"
+			document.getElementById("qmvinfostats").style.display = "none"
+			document.getElementById("tagsedit").style.display = "block"
+			document.getElementById("menu_list").style.display = "block"
+			break;
+		case "singlefileview":
+			document.getElementById("menu_list").style.display = "none"
+			document.getElementById("searchresults").style.display = "none"
+			document.getElementById("singlefileview").style.display = "block"
+			document.getElementById("singlefileview_infobox").style.display = "block"
+			file_viewer(selectedsection)
+			break;
+		case "qmvinfostats":
+			document.getElementById("menu_sidesettings").style.display = "none"
+			document.getElementById("searchresults").style.display = "none"
+			document.getElementById("filesedit").style.display = "none"
+			document.getElementById("tagsedit").style.display = "none"
+			document.getElementById("qmvinfostats").style.display = "block"
+			document.getElementById("menu_list").style.display = "block"
 	}
 }
 
-//closes big viewer
-function bigviewclose() {
-	document.getElementById("bigviewbox").style.display = "none"
-	document.getElementById("menu").style.display = "block"
-	document.getElementById("maingridview").style.display = "block"
+// Displays file and it's details in a specified section
+function file_viewer(viewingmode) {
+	rotation_value = 0
+	var linktags = ""
+	var filepath = ""
+	var filetype = ""
+	var filedescription = ""
+	if (viewingmode !== "singlefileview") {
+		var filetagslen = search_results[current_file][4].length
+		for (var i = 0; i < filetagslen; i++) {
+			if (i === filetagslen - 1) {
+				linktags += search_results[current_file][4][i]
+			} else {
+				linktags += search_results[current_file][4][i] + ","
+			}
+		}
+		var singlemvpath = "quomediaview.html?qmv_mode=singlefileview&path=" + baselocation + search_results[current_file][1] + search_results[current_file][2] + "&tags=" + linktags
+		if (search_results[current_file ][7] !== "") {
+			filedescription = search_results[current_file][7]
+			singlemvpath += "&description=" + filedescription
+		}
+		if (viewingmode === "lightbox" || viewingmode === "sidepanelpreview") {
+			document.getElementById(viewingmode + "_newtablink").href = singlemvpath
+		}
+		filepath = baselocation + search_results[current_file][1] + search_results[current_file][2]
+		filetype = search_results[current_file][3]
+	} else if (viewingmode === "singlefileview") {
+		var browser_address = decodeURI(window.location)
+		var address_string = browser_address.split("?")
+		var address_parameters = address_string[1].split("&")
+		var address_parameters_length = address_parameters.length
+		for (var i = 0; i < address_parameters_length; i++) {
+			if (address_parameters[i].startsWith("path")) {
+				filepath = address_parameters[i].split("=")[1]
+			}
+			if (address_parameters[i].startsWith("tags")) {
+				linktags = address_parameters[i].split("=")[1]
+			}
+			if (address_parameters[i].startsWith("description")) {
+				filedescription = address_parameters[i].split("=")[1]
+			}
+		}
+		filetype = return_file_display_tag(filepath)
+	}
+	var viewingmodestring = '"' + viewingmode + '"'
+	if (filetype === "video") {
+		viewingmodestring += ', "video"'
+		document.getElementById(viewingmode + "_filebox").innerHTML = "<video src='" + filepath + "' id='" + viewingmode + "_file_display' oncanplay='file_viewer_afterload(" + viewingmodestring + ")' class='main_file_display' controls>Your browser can not display videos</video>"
+	} else {
+		viewingmodestring += ', "img"'
+		document.getElementById(viewingmode + "_filebox").innerHTML = "<img src='" + filepath + "' id='" + viewingmode + "_file_display' onload='file_viewer_afterload(" + viewingmodestring + ")' class='main_file_display'/>"
+	}
+	if (viewingmode === "sidepanelpreview" || viewingmode === "singlefileview" || viewingmode === "filesedit") {
+		if (viewingmode === "sidepanelpreview" || viewingmode === "singlefileview") {
+			document.getElementById(viewingmode + "_fileinfo_locationname").innerHTML = filepath
+			document.getElementById(viewingmode + "_fileinfo_description").innerHTML = filedescription
+			document.getElementById(viewingmode + "_fileinfo_fullpath").innerHTML = document.getElementById(viewingmode + "_file_display").currentSrc.replaceAll("%20"," ")
+		}
+		tags_string = ""
+		if (viewingmode === "sidepanelpreview" || viewingmode === "filesedit") {
+			var links_color_array = search_results[current_file][4][0]
+			var links_color_array_length = links_color_array.length
+			for (var i = 0; i < links_color_array_length; i++) {
+				var tag_color = return_tag_color(links_color_array[i])
+				var tag_id = return_tag_id(links_color_array[i])
+				if (viewingmode === "sidepanelpreview") {
+					tags_string += "<span style='color:" + tag_color + "'>"
+				} else if (viewingmode === "filesedit") {
+					tags_string += "<div id='filesedit_filetag_" + tag_id + "' class='clickable file_tag' onclick='file_changer(\"tag-remove\",\"" + tag_id + "\")' style='color:" + tag_color + "'><span class='file_tag_x'>X</span> "
+				}
+				tags_string += links_color_array[i].replaceAll("_", " ")
+				if (i === links_color_array_length - 1) {
+					if (viewingmode === "sidepanelpreview") {
+						tags_string += "</span>"
+					} else if (viewingmode === "filesedit") {
+						tags_string += "</div> "
+					}
+				} else {
+					if (viewingmode === "sidepanelpreview") {
+						tags_string += "</span>, "
+					} else if (viewingmode === "filesedit") {
+						tags_string += ",</div> "
+					}
+				}
+			}
+		} else {
+			tags_string = linktags.replaceAll(',', ', ').replaceAll('_', ' ')
+		}
+		if (viewingmode !== "filesedit") {
+			document.getElementById(viewingmode + "_fileinfo_tags").innerHTML = tags_string
+		} else {
+			document.getElementById(viewingmode + "_file_tags").innerHTML = tags_string
+		}
+	}
+	if (viewingmode === "filesedit") {
+		document.getElementById(viewingmode + "_file_foldermain").value = search_results[current_file][1]
+		document.getElementById(viewingmode + "_file_namemain").value = search_results[current_file][2]
+		document.getElementById(viewingmode + "_file_folderthumb").value = search_results[current_file][5]
+		document.getElementById(viewingmode + "_file_namethumb").value = search_results[current_file][6]
+		document.getElementById(viewingmode + "_file_description").value = search_results[current_file][7]
+	}
 }
 
-//opens options menu
-function editoptions() {
-	document.getElementById("menulist").style.display = "none"
-	document.getElementById("menusidesettings").style.display = "block"
+// Continues displaying media after it has loaded to get more details about it
+function file_viewer_afterload(viewingmode, filetype) {
+	if (viewingmode === "sidepanelpreview" || viewingmode === "singlefileview") {
+		if (filetype === "video") {
+			document.getElementById(viewingmode + "_fileinfo_details").innerHTML = "Width: " + document.getElementById(viewingmode + "_file_display").videoWidth + "<br />"
+			document.getElementById(viewingmode + "_fileinfo_details").innerHTML += "Height: " + document.getElementById(viewingmode + "_file_display").videoHeight
+		} else {
+			document.getElementById(viewingmode + "_fileinfo_details").innerHTML = "Width: " + document.getElementById(viewingmode + "_file_display").naturalWidth + "<br />"
+			document.getElementById(viewingmode + "_fileinfo_details").innerHTML += "Height: " + document.getElementById(viewingmode + "_file_display").naturalHeight
+		}
+	}
 }
 
-//sorting tags (for now only by name)
+// Displays tag info when clicking on infoicon in tags menu // in the future rewrite it as a dialog tag instead of js alert
+function tag_info_show(tag_id) {
+	var tags_collection_length = tags_collection.length
+	for (var i = 0; i < tags_collection_length; i++) {
+		if (tags_collection[i][0] === tag_id) {
+			alert(tags_collection[i][4])
+		}
+	}
+}
+
+// Shows warning icon and activates exit confirmation to remind that changes were made to qmv database
+function warn_changes_made() {
+	document.getElementById("save_warning").style.display = "inline"
+	window.onbeforeunload = function(){return ""}
+}
+
+// Handles keyboard shortcuts in lightbox
+function keyboard_shortcuts() {
+	switch (event.key) {
+		case "Escape":
+			section_close("generalexit")
+			break;
+		case "ArrowLeft":
+			file_switch('previous','lightbox')
+			break;
+		case "ArrowRight":
+			file_switch('next','lightbox')
+			break;
+	}
+}
+
+// Rotates given file by specified amount //rework in the future to accept values from 0-360
+function file_rotate(rotationid,value) {
+	switch (value) {
+		case "right":
+			if (rotation_value === 360) {
+				rotation_value = 90
+			} else {
+				rotation_value += 90
+			}
+			break;
+		case "left":
+			if (rotation_value === 0) {
+				rotation_value = 270
+			} else {
+				rotation_value -= 90
+			}
+			break;
+		default:
+			rotation_value = value * 1
+	}
+	if (rotation_value === 360 || rotation_value === 0 || rotation_value === 180) {
+		document.getElementById(rotationid + "_file_display").style.transform = "rotate(" + rotation_value + "deg)"
+	} else {
+		var rotation_string = ""
+		var f_width = document.getElementById(rotationid + "_file_display").width
+		var f_height = document.getElementById(rotationid + "_file_display").height
+		if (f_width === 0 && f_height === 0) {
+			f_width = document.getElementById(rotationid + "_file_display").videoWidth
+			f_height = document.getElementById(rotationid + "_file_display").videoHeight
+		}
+		var transl_width = (((f_width - f_height) / 2) / f_width) * 100
+		var transl_height = (((f_width - f_height) / 2) / f_height) * 100
+		if (f_width > f_height) {
+			if (rotation_value === 90) {
+				rotation_string += "rotate(" + rotation_value + "deg) translate(" + Math.abs(transl_width) + "%, " + Math.abs(transl_height) + "%)"
+			} else if (rotation_value === 270) {
+				rotation_string += "rotate(" + rotation_value + "deg) translate(-" + transl_width + "%, -" + transl_height + "%)"
+			}
+		} else {
+			if (rotation_value === 90) {
+				rotation_string += "rotate(" + rotation_value + "deg) translate(" + transl_width + "%, " + transl_height + "%)"
+			} else if (rotation_value === 270) {
+				rotation_string += "rotate(" + rotation_value + "deg) translate(" + Math.abs(transl_width) + "%, " + Math.abs(transl_height) + "%)"
+			}
+		}
+		document.getElementById(rotationid + "_file_display").style.transform = rotation_string
+	}
+}
+
+// Applies css filters to chosen file
+function file_cssfilter(fileid,chosenfilter,value) {
+	var filter_string = ""
+	switch (chosenfilter) {
+		case "brightness":
+			filter_string = "brightness(" + value + "%)"
+			break;
+		case "contrast":
+			filter_string = "contrast(" + value + "%)"
+			break;
+		case "hue-rotate":
+			filter_string = "hue-rotate(" + value + "deg)"
+			break;
+		case "invert":
+			filter_string = "invert(" + value + "%)"
+			break;
+		case "saturate":
+			filter_string = "saturate(" + value + "%)"
+			break;
+	}
+	document.getElementById(fileid + "_file_display").style.filter = filter_string
+}
+
+// Returns tag id from given name
+function return_tag_id(tagname) {
+	var tags_collection_length = tags_collection.length
+	for (var i = 0; i < tags_collection_length; i++) {
+		if (tags_collection[i][1].toLowerCase() === tagname.toLowerCase()) {
+			return tags_collection[i][0]
+		}
+	}
+}
+
+// Returns tag name from given id
+function return_tag_name(tagid) {
+	tags_collection_length = tags_collection.length
+	for (var i = 0; i < tags_collection_length; i++) {
+		if (tags_collection[i][0] === tagid) {
+			return tags_collection[i][1]
+		}
+	}
+}
+
+// Returns tag color from given id
+function return_tag_color(tagname) {
+	var tags_collection_length = tags_collection.length
+	for (var i = 0; i < tags_collection_length; i++) {
+		if (tags_collection[i][1].toLowerCase() === tagname.toLowerCase()) {
+			return tags_collection[i][3]
+		}
+	}
+}
+
+// Returns what tag to use to display file based on file name
+function return_file_display_tag(filename) {
+	var file_extensions = filename.toLowerCase().split(".")
+	var file_extension_last = file_extensions[file_extensions.length - 1]
+	if (file_extension_last === "mp4" || file_extension_last === "webm" || file_extension_last === "ogg") {
+		return "video"
+	} else {
+		return "img"
+	}
+}
+
+// Return folder id from path or make a new one if it doesn't exist yet
+function return_folder_id(path) {
+	var folders_length = loaded_qmv.quomediaviewdb[1].qmv_folders.length       
+	for (var folder = 0 ; folder < folders_length; folder++) {
+		var qmv_folder_id = Object.keys(loaded_qmv.quomediaviewdb[1].qmv_folders[folder])[0]
+		if (loaded_qmv.quomediaviewdb[1].qmv_folders[folder][qmv_folder_id] === path) {
+			return qmv_folder_id
+		} else if (folder === folders_length - 1 && loaded_qmv.quomediaviewdb[1].qmv_folders[folder][qmv_folder_id] !== path) {
+			var new_folder_number = qmv_folder_id * 1 + 1
+			var new_folder_string = '{"' + new_folder_number + '":"' + path + '"}'
+			var new_folder_object = JSON.parse(new_folder_string)
+			loaded_qmv.quomediaviewdb[1].qmv_folders.push(new_folder_object)
+			return new_folder_number
+		}
+	}
+}
+
+// Sorts tags in every tag group by name
 function tagsorter() {
-	var allgroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
+	var allgroupslen = loaded_qmv.quomediaviewdb[2].qmv_tags.length
 	for (var i = 0; i < allgroupslen; i++) {
 		var referencearray = []
 		var sortingarray = []
 		var sortedarray = []
-		var groupname = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-		var tagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupname][1].tags.length
+		var groupname = Object.keys(loaded_qmv.quomediaviewdb[2].qmv_tags[i])[0]
+		var tagslen = loaded_qmv.quomediaviewdb[2].qmv_tags[i][groupname][1].tags.length
 		for (var j = 0; j < tagslen; j++) {
-			var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupname][1].tags[j])[0]
-			var tagname = globaldb.quomediaviewdb[2].qmv_tags[i][groupname][1].tags[j][tagid][1]
-			referencearray.push(globaldb.quomediaviewdb[2].qmv_tags[i][groupname][1].tags[j])
+			var tagid = Object.keys(loaded_qmv.quomediaviewdb[2].qmv_tags[i][groupname][1].tags[j])[0]
+			var tagname = loaded_qmv.quomediaviewdb[2].qmv_tags[i][groupname][1].tags[j][tagid][1]
+			referencearray.push(loaded_qmv.quomediaviewdb[2].qmv_tags[i][groupname][1].tags[j])
 			sortingarray.push(tagname)
 			if (j === tagslen - 1) {
 				sortingarray.sort()
@@ -859,1266 +864,672 @@ function tagsorter() {
 				}
 			}
 		}
-		globaldb.quomediaviewdb[2].qmv_tags[i][groupname][1].tags = sortedarray
+		loaded_qmv.quomediaviewdb[2].qmv_tags[i][groupname][1].tags = sortedarray
 	}
-	changeguard = 1
-	changesnotify()
-	tagsmenu()
+	warn_changes_made()
+	render_tags("")
 }
 
-//adds new empty files to database
-function mediauploadinput() {
-	var filescount = document.getElementById("fileadder").files.length
-	var fileslenbefore = globaldb.quomediaviewdb[3].qmv_files.length
+// Passes files from file upload input to file adding function
+function file_upload() {
+	var filescount = document.getElementById("file_uploader").files.length
 	for (var i = 0; i < filescount; i++) {
-		var filename = document.getElementById("fileadder").files[i].name
-		var lastfile = globaldb.quomediaviewdb[3].qmv_files.length - 1
-		var nextavailableid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[lastfile])[0] * 1 + 1
-		var emptyfilestring = '{"' + nextavailableid + '":[{"name":["' + filename + '","1"]},{"tags":[]}]}'
-		var emptyfileobject = JSON.parse(emptyfilestring)
-		globaldb.quomediaviewdb[3].qmv_files.push(emptyfileobject)
+		var file = document.getElementById("file_uploader").files[i]
+		file_add(file.name, file.size, file.type)
 	}
-	changeguard = 1
-	changesnotify()
-	searching("")
-	inmediaedit = filescount - 1
-	editmedia()
+	warn_changes_made()
+	section_close("generalexit")
+	render_tags("start")
 }
 
-//opens media editing menu for and loads basic structure
-function editmedia() {
-	document.getElementById("maingridview").style.display = "none"
-	document.getElementById("bigviewbox").style.display = "none"
-	document.getElementById("mediaedit").style.display = "block"
-	document.getElementById("menu").style.display = "block"
-	document.getElementById("menulist").style.display = "none"
-	document.getElementById("menusidesettings").style.display = "block"
-	var allgroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-	var tagstowrite = ""
-	for (var i = 0; i < allgroupslen; i++) {
-		var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-		var groupname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[0]
-		var tagscolor = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[1]
-		tagstowrite += "<div id='" + groupid + "_section' class='tagcellsgroup'><br />" + groupname + ":<br />"
-		var alltagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-		for (var j = 0; j < alltagslen; j++) {
-			var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0]
-			var tagname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][1]
-			tagstowrite += "<div id='" + tagid + "_tagcelldiv' class='tagborder' style='border: 1px solid " + tagscolor + "; color:" + tagscolor + "'><label for='" + tagid +"_tagcell'>" + tagname + "</label>"
-			/* old code for radio group type, may use it in the future
-			if (grouptype === "radio") {
-				tagstowrite += "<input type='radio' name='gridborder' value='" + tagid + "' id='" + tagid + "_tagcell' onchange='tagcellswitch(\"" + tagid + "_tagcelldiv\",\"radio\",\"" + tagscolor + "\",\"full\")'/>"
-			} else 
-			*/
-			tagstowrite += "<input type='checkbox' value='" + tagid + "' id='" + tagid + "_tagcell' onchange='tagcellswitch(\"" + tagid + "_tagcelldiv\",\"checkbox\",\"" + tagscolor + "\",\"full\")'/>"
-			tagstowrite += "</div>"
-		}
-		//excluding first group from adding more tags into it
-		if (i !== 0) {
-			var tagidarray = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[3].split("_")
-			var nexttagnumber = tagidarray[1] * 1 + 1
-			var nexttagid = tagidarray[0] + nexttagnumber
-			tagstowrite += "<div id='" + nexttagid + "_tagcelldiv' class='tagborder' style='border: 1px solid " + tagscolor + "; color:" + tagscolor + "'><label for='" + nexttagid +"_tagcell'>new: </label><input type='text' id='" + nexttagid + "_tagcellnew' onchange='quicktagadder(\"" + groupid + "\")' style='background-color: transparent; color:" + tagscolor + "' /></div>"
-		}
-		tagstowrite += "</div>"
-		
+// Manages every change to file data in filesedit view
+function file_changer(action,extraparam) {
+	if (action === "name" || action === "folder" || action === "description") {
+		var typed_string = document.getElementById("filesedit_file_" + action + extraparam).value
 	}
-	document.getElementById("me_availablefolders").innerHTML = ""
-	var folderslen = globaldb.quomediaviewdb[1].qmv_folders.length
-	for (var k = 0; k < folderslen; k++) {
-		var folderid = Object.keys(globaldb.quomediaviewdb[1].qmv_folders[k])
-		document.getElementById("me_availablefolders").innerHTML += "<option value='" + globaldb.quomediaviewdb[1].qmv_folders[k][folderid] + "'></option>"
-	}
-	document.getElementById("me_tagcellsdiv").innerHTML = tagstowrite
-	
-	document.getElementById("me_tagcellsdiv").innerHTML += "<div id='divforquickgroupadder' class='tagcellsgroup'><br /><button onclick='quickgroupadder()'>Add new tag group</button></div>"
-	
-	document.getElementById("me_foldermain").value = ""
-	document.getElementById("me_namemain").value = ""
-	document.getElementById("me_folderthumb").value = ""
-	document.getElementById("me_namethumb").value = ""
-	document.getElementById("me_description").value = ""
-	
-	//loading the values from the opened file
-	var filetypearray = testarray[inmediaedit][2].split(".")
-	var lastext = filetypearray.length - 1
-	if (filetypearray[lastext] === "mp4" || filetypearray[lastext] === "webm" || filetypearray[lastext] === "ogg") {
-		document.getElementById("mediamini").innerHTML = "<video src='" + baselocation + testarray[inmediaedit][1] + testarray[inmediaedit][2] + "' class='preview' controls />"
-	} else {
-		document.getElementById("mediamini").innerHTML = "<img src='" + baselocation + testarray[inmediaedit][1] + testarray[inmediaedit][2] + "' class='preview' />"
-	}
-	
-	document.getElementById("me_foldermain").value = testarray[inmediaedit][1]
-	document.getElementById("me_namemain").value = testarray[inmediaedit][2]
-	
-	if (testarray[inmediaedit][3] !== "") {
-		document.getElementById("me_folderthumb").value = testarray[inmediaedit][3]
-	}
-	
-	if (testarray[inmediaedit][4] !== "") {
-		document.getElementById("me_namethumb").value = testarray[inmediaedit][4]
-	}
-	
-	if (testarray[inmediaedit][8] !== "") {
-		document.getElementById("me_description").value = testarray[inmediaedit][8]
-	}
-	
-	//loading tags
-	var filetagslen = testarray[inmediaedit][6].length
-	for (var m = 0; m < filetagslen; m++) {
-		var filetagid = testarray[inmediaedit][6][m]
-		var tagcelldiv = filetagid + "_tagcelldiv"
-		if (document.getElementById(tagcelldiv) !== null) {
-			var groupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-			for (var n = 0; n < groupslen; n++) {
-				var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[n])[0]
-				var alltagslen = globaldb.quomediaviewdb[2].qmv_tags[n][groupid][1].tags.length
-				for (var o = 0; o < alltagslen; o++) {
-					if (filetagid === Object.keys(globaldb.quomediaviewdb[2].qmv_tags[n][groupid][1].tags[o])[0]) {
-						var tagcolor = globaldb.quomediaviewdb[2].qmv_tags[n][groupid][0].settings[1]
-						tagcellswitch(tagcelldiv,"checkbox",tagcolor,"visual")
+	var files_length = loaded_qmv.quomediaviewdb[3].qmv_files.length
+	for (var i = 0; i < files_length; i++) {
+		var file_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i])[0]
+		if (search_results[current_file][0] === file_id) {
+			// Deleting file
+			if (action === "delete") {
+				var removal_tags_length = search_results[current_file][4][0].length
+				for (var removetag = 0; removetag < removal_tags_length; removetag++) {
+					tags_changer("tag",return_tag_id(search_results[current_file][4][0][removetag]),"count_minus")
+				}
+				loaded_qmv.quomediaviewdb[3].qmv_files.splice(i,1)     
+				search_results.splice(current_file,1)
+				break;
+			}
+			var file_data_length = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id].length
+			for (var j = 0; j < file_data_length; j++) {
+				// Main file name and folder
+				if (extraparam === "main" && Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j])[0] === "name") {
+					if (action === "name") {
+						loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].name[0] = typed_string
+						search_results[current_file][2] = typed_string
+					}
+					if (action === "folder") {
+						loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].name[1] = "" + return_folder_id(typed_string)
+						search_results[current_file][1] = typed_string
 					}
 				}
-			}
-		}
-	}
-}
-
-
-//handling updating of everything else in files other than tags
-function filesettupdate(settid,extraparam) {
-	
-	//file names
-	if (settid === "me_filename") {
-		var enteredname = ""
-	
-		if (extraparam === "main") {
-			enteredname = document.getElementById("me_namemain").value
-		}
-	
-		if (extraparam === "thumb") {
-			enteredname = document.getElementById("me_namethumb").value
-		}
-		
-		//finding file
-		var fileslen = globaldb.quomediaviewdb[3].qmv_files.length
-		for (var i = 0; i < fileslen; i++) {
-			var fileid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0]
-			if (testarray[inmediaedit][0] === fileid) {
-				var fileparamslen = globaldb.quomediaviewdb[3].qmv_files[i][fileid].length
-				for (var j = 0; j < fileparamslen; j++) {
-					if (extraparam === "main") {
-						if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0] === "name") {
-							globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].name[0] = enteredname
-							testarray[inmediaedit][2] = enteredname
-							editmedia()
-						}
-					} else if (extraparam === "thumb") {
-						thumbcheck = false
-						if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0] === "thmb") {
-							thumbcheck = true
-						}
-						if (j === fileparamslen - 1) {
-							if (thumbcheck === true) {
-								globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].thmb[0] = enteredname
-								testarray[inmediaedit][4] = enteredname
-							} else {
-								var newthumbstring = '{"thmb":["' + enteredname + '",""]}'
-								var newthumbobject = JSON.parse(newthumbstring)
-								globaldb.quomediaviewdb[3].qmv_files[i][fileid].push(newthumbobject)
-								testarray[inmediaedit][4] = enteredname
+				// Adding/Removing tags
+				if (action === "tag-add" || action === "tag-remove") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j])[0] === "tags") {
+						var inside_action = action.split("-")[1]
+						var tag_id = "" + extraparam
+						var tag_place = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags.indexOf(extraparam)
+						if (inside_action === "add") {
+							if (tag_place === -1) {
+								if (extraparam === "a1" || extraparam === "a2" || extraparam === "a3") {
+									var old_radio_tag = loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags[0]
+									tags_changer("tag",loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags[0],"count_minus")
+									loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags[0] = extraparam
+									var search_results_tag_place = search_results[current_file][4][0].indexOf(return_tag_name(old_radio_tag))
+									search_results[current_file][4][0][search_results_tag_place] = return_tag_name(extraparam)
+									tags_changer("tag",extraparam,"count_plus")
+								} else {
+									loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags.push(extraparam)
+									search_results[current_file][4][0].push(return_tag_name(extraparam))
+									tags_changer("tag",extraparam,"count_plus")
+								}
+							}
+						} else if (inside_action === "remove") {
+							if (tag_place !== -1) {
+								if (extraparam !== "a1" && extraparam !== "a2" && extraparam !== "a3") {
+									loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].tags.splice(tag_place,1)
+									var search_results_tag_place = search_results[current_file][4][0].indexOf(return_tag_name(extraparam))
+									search_results[current_file][4][0].splice(search_results_tag_place,1)
+									tags_changer("tag",extraparam,"count_minus")
+								}
 							}
 						}
 					}
 				}
-			}
-		}		
-	}
-	
-	//file paths
-	if (settid === "me_path") {
-		var enteredpath = ""
-	
-		if (extraparam === "main") {
-			enteredpath = document.getElementById("me_foldermain").value
-		}
-	
-		if (extraparam === "thumb") {
-			enteredpath = document.getElementById("me_folderthumb").value
-		}
-	
-		var	folderid = 0
-		//retrieving folder id
-		var folderslen = globaldb.quomediaviewdb[1].qmv_folders.length       
-		for (var i = 0 ; i < folderslen; i++) {
-			var inbasefolderid = Object.keys(globaldb.quomediaviewdb[1].qmv_folders[i])[0]
-			if (globaldb.quomediaviewdb[1].qmv_folders[i][inbasefolderid] === enteredpath) {
-				folderid = inbasefolderid
-			} else if (i === folderslen - 1 && globaldb.quomediaviewdb[1].qmv_folders[i][inbasefolderid] !== enteredpath) {
-				var newfolderid = inbasefolderid * 1 + 1
-				var newfolderstring = '{"' + newfolderid + '":"' + enteredpath + '"}'
-				var newfolderobject = JSON.parse(newfolderstring)
-				globaldb.quomediaviewdb[1].qmv_folders.push(newfolderobject)
-				folderid = newfolderid
-			}
-		}
-
-		//finding file
-		var fileslen = globaldb.quomediaviewdb[3].qmv_files.length
-		for (var i = 0; i < fileslen; i++) {
-			var fileid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0]
-			if (testarray[inmediaedit][0] === fileid) {
-				var fileparamslen = globaldb.quomediaviewdb[3].qmv_files[i][fileid].length
-				for (var j = 0; j < fileparamslen; j++) {
-					if (extraparam === "main") {
-						if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0] === "name") {
-							globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].name[1] = "" + folderid
-							testarray[inmediaedit][1] = enteredpath
-							editmedia()
+				// thumbnail name and folder
+				if (extraparam === "thumb") {
+					var found_thumbnail = false
+					if (Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j])[0] === "thmb") {
+						found_thumbnail = true
+						if (action === "name") {
+							loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].thmb[0] = typed_string
+							search_results[current_file][6] = typed_string
 						}
-					} else if (extraparam === "thumb") {
-						thumbcheck = false
-						if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0] === "thmb") {
-							thumbcheck = true
+						if (action === "folder") {
+							loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j].thmb[1] = "" + return_folder_id(typed_string)
+							search_results[current_file][5] = typed_string
 						}
-						if (j === fileparamslen - 1) {
-							if (thumbcheck === true) {
-								globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].thmb[1] = "" + folderid
-								testarray[inmediaedit][3] = enteredpath
-							} else {
-								var newthumbstring = '{"thmb":["","' + folderid + '"]}'
-								var newthumbobject = JSON.parse(newthumbstring)
-								globaldb.quomediaviewdb[3].qmv_files[i][fileid].push(newthumbobject)
-								testarray[inmediaedit][3] = enteredpath
-							}
+					}
+					if (j === file_data_length - 1 && found_thumbnail === false) {
+						var new_thumb_name = ""
+						var new_thumb_folder_id = ""
+						if (action === "name") {
+							new_thumb_name = typed_string
+							search_results[current_file][6] = typed_string
 						}
+						if (action === "folder") {
+							new_folder_id = return_folder_id(typed_string)
+							search_results[current_file][5] = typed_string
+						}
+						var new_thumb_string = '{"thmb":["' + new_thumb_name  + '","' + new_thumb_folder_id + '"]}'
+						var new_thumb_object = JSON.parse(new_thumb_string )
+						loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id].push(new_thumb_object)
 					}
 				}
-			}
-		}		
-	}
-	
-	//file description
-	if (settid === "me_desc") {
-		var fileslen = globaldb.quomediaviewdb[3].qmv_files.length
-		for (var i = 0; i < fileslen; i++) {
-			var fileid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0]
-			if (testarray[inmediaedit][0] === fileid) {
-				var fileparamslen = globaldb.quomediaviewdb[3].qmv_files[i][fileid].length
-				for (var j = 0; j < fileparamslen; j++) {
-					desccheck = false
-					if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0] === "desc") {
-						desccheck = true
+				// File description
+				if (action === "description") {
+					found_description = false
+					if (Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j])[0] === "desc") {
+						found_description = true
+						loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id][j]["desc"] = typed_string
+						search_results[current_file][7] = typed_string
 					}
-					if (j === fileparamslen - 1) {
-						var newdescription = document.getElementById("me_description").value
-						if (desccheck === true) {
-							globaldb.quomediaviewdb[3].qmv_files[i][fileid][j]["desc"] = newdescription
-							testarray[inmediaedit][8] = newdescription
-						} else {
-							var newdescstring = '{"desc":"' + newdescription + '"}'
-							var newdescobject = JSON.parse(newdescstring)
-							globaldb.quomediaviewdb[3].qmv_files[i][fileid].push(newdescobject)
-							testarray[inmediaedit][8] = newdescription
-						}
+					if (j === file_data_length - 1 && found_description === false) {
+						var new_description_string = '{"desc":"' + typed_string + '"}'
+						var new_description_object = JSON.parse(new_description_string)
+						loaded_qmv.quomediaviewdb[3].qmv_files[i][file_id].push(new_description_object)
+						search_results[current_file][7] = typed_string
 					}
 				}
 			}
 		}
 	}
-	changeguard = 1
-	changesnotify()
-}
-
-//quick changing of file names
-function nameselect(type) {
-	if (type === "main") {
-		document.getElementById("me_namemain").value = document.getElementById("me_nameupload").files[0].name
-		filesettupdate("me_filename","main")
-	} else if (type === "thumb") {
-		document.getElementById("me_namethumb").value = document.getElementById("me_thumbupload").files[0].name
-		filesettupdate("me_filename","thumb")
-	}
-}
-
-//deletes the file from search array and database
-function filedelete() {
-    var fileslen = globaldb.quomediaviewdb[3].qmv_files.length 
-    for (var i = 0; i < fileslen; i++) { 
-        var fileidinside = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0] 
-        if (fileidinside === testarray[inmediaedit][0]) { 
-            //delete the tags count from qmv_tags 
-            var fileparamslen = globaldb.quomediaviewdb[3].qmv_files[i][fileidinside].length 
-            for (var j = 0; j < fileparamslen; j++) { 
-                if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileidinside][j])[0] === "tags") { 
-                    var filetagslen = globaldb.quomediaviewdb[3].qmv_files[i][fileidinside][j].tags.length 
-                    for (var k = 0; k < filetagslen; k++) { 
-                        var tglen = globaldb.quomediaviewdb[2].qmv_tags.length 
-                        for (var l = 0; l < tglen; l++) { 
-                            var tgname = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[l])[0] 
-                            var innertagslen = globaldb.quomediaviewdb[2].qmv_tags[l][tgname][1].tags.length 
-                            for (var m = 0; m < innertagslen; m++) { 
-                                var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[l][tgname][1].tags[m])[0] 
-                                if (tagid === globaldb.quomediaviewdb[3].qmv_files[i][fileidinside][j].tags[k]) { 
-                                    globaldb.quomediaviewdb[2].qmv_tags[l][tgname][1].tags[m][tagid][0] -= 1 
-                                } 
-                            } 
-                             
-                        } 
-                    } 
-                } 
-            } 
-             
-            //delete file from qmv_files 
-            globaldb.quomediaviewdb[3].qmv_files.splice(i,1)     
-            testarray.splice(inmediaedit,1) 
-            break; 
-        } 
-    }
-	
-	//when it is the only file in search
-	if (inmediaedit === 0 && testarray.length === 0) {
-		backtomain()
-
-	//when it is the last file in search and there are others
-	} else if (inmediaedit === testarray.length && inmediaedit !== 0) {
-		inmediaedit -= 1
-		editmedia()
-		
-	//when there are other files in search
-	} else {
-		editmedia()
-	}
-	
-	changeguard = 1
-	changesnotify()
-}
-
-//adding new tags from media edit window
-function quicktagadder(groupid) {
-	var groupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-	for (var i = 0; i < groupslen; i++) {
-		if (groupid === Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]) {
-			var letterarray = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[3].split("_")
-			var tagscolor = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[1]
-			var newnumber = letterarray[1] * 1 + 1
-			var newtagid = letterarray[0] + newnumber
-			globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[3] = letterarray[0] + "_" + newnumber
-			var tagname = document.getElementById(newtagid + "_tagcellnew").value
-			var tagstring = '{"' + newtagid + '":[0,"' + tagname + '"]}'
-			var tagobject = JSON.parse(tagstring)
-			globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.push(tagobject)
-			document.getElementById(groupid + "_section").removeChild(document.getElementById(newtagid + "_tagcelldiv"))
-			
-			//adding newly created tagcell
-			document.getElementById(groupid + "_section").innerHTML += "<div id='" + newtagid + "_tagcelldiv' class='tagborder' style='border: 1px solid " + tagscolor + "; color:" + tagscolor + "'><label for='" + newtagid +"_tagcell'>" + tagname + "</label><input type='checkbox' value='" + newtagid + "' id='" + newtagid + "_tagcell' onchange='tagcellswitch(\"" + newtagid + "_tagcelldiv\",\"checkbox\",\"" + tagscolor + "\",\"full\")'/></div>"
-			
-			//adding new text input
-			var tagidarray = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[3].split("_")
-			var nexttagnumber = tagidarray[1] * 1 + 1
-			var nexttagid = tagidarray[0] + nexttagnumber
-			document.getElementById(groupid + "_section").innerHTML += "<div id='" + nexttagid + "_tagcelldiv' class='tagborder' style='border: 1px solid " + tagscolor + "; color:" + tagscolor + "'><label for='" + nexttagid +"_tagcell'>new: </label><input type='text' id='" + nexttagid + "_tagcellnew' onchange='quicktagadder(\"" + groupid + "\")' style='background-color: transparent; color:" + tagscolor + "' /></div>"
-			
-			changeguard = 1
-			changesnotify()
+	if (action === "delete") {
+		if (current_file === 0 && search_results.length === 0) {
+			section_close("filesedit")
+			searching("")
+		} else if (current_file === search_results.length && current_file !== 0) {
+			current_file -= 1
+			file_viewer("filesedit")
+		} else {
+			file_viewer("filesedit")
 		}
 	}
+	if (action !== "delete") {
+		file_viewer("filesedit")
+	}
+	warn_changes_made()
 }
 
-//adding new tags from media edit window
-function quickgroupadder() {
-	var lastgroup = globaldb.quomediaviewdb[2].qmv_tags.length - 1
-	var lastgroupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[lastgroup])[0]
-	var groupidarray = lastgroupid.split("-")
-	var newgroupnumber = groupidarray[1] * 1 + 1
-	var newgroupid = "group-" + newgroupnumber
-	var lettersarray = "abcdefghijklmnopqrstuvwxyz".split("")
-	
-	
-	//add to globaldb
-	var jsonletterid = lettersarray[newgroupnumber - 1] + "_0"
-	var taggroupstring = '{"' + newgroupid + '":[{"settings":["' + newgroupid + '-name","#808080","show","' + jsonletterid + '"]},{"tags":[]}]}'
-	var taggroupobject = JSON.parse(taggroupstring)
-	globaldb.quomediaviewdb[2].qmv_tags.push(taggroupobject)
-	
-	editmedia()
-	changeguard = 1
-	changesnotify()
-}
-
-// to handle dropping files //base code provided by MDN
-function dropHandler(ev) {
-
-	ev.preventDefault()
-	
-	if (ev.dataTransfer.items) {
-		var newfilescount = 0
-		for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-			if (ev.dataTransfer.items[i].kind === 'file') {
-				newfilescount += 1
-				var file = ev.dataTransfer.items[i].getAsFile()
-				var filename = file.name
-				var lastfile = 0
-				if (globaldb.quomediaviewdb[3].qmv_files.length !== 0) {
-					var lastfile = globaldb.quomediaviewdb[3].qmv_files.length - 1
-				}
-				var nextavailableid = 0
-				if (globaldb.quomediaviewdb[3].qmv_files.length !== 0) {
-					var nextavailableid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[lastfile])[0] * 1 + 1
-				}
-				var emptyfilestring = '{"' + nextavailableid + '":[{"name":["' + filename + '","1"]},{"tags":[]}]}'
-				var emptyfileobject = JSON.parse(emptyfilestring)
-				globaldb.quomediaviewdb[3].qmv_files.push(emptyfileobject)
+// Handles dropped items and passes them to file uploading function
+function item_drop(droppeditems) {
+	droppeditems.preventDefault()
+	if (!droppeditems.dataTransfer.items) {
+		for (var i = 0; i < droppeditems.dataTransfer.items.length; i++) {
+			if (droppeditems.dataTransfer.items[i].kind === 'file') {
+				var file = droppeditems.dataTransfer.items[i].getAsFile()
+				file_add(file.name, file.size, file.type)
 			}
 		}
-		changeguard = 1
-		changesnotify()
-		searching("")
-		inmediaedit = newfilescount - 1
-		editmedia()
-	} else {
-		var newfilescount = 0
-		// Use DataTransfer interface to access the file(s)
-		for (var i = 0; i < ev.dataTransfer.files.length; i++) {
-			newfilescount += 1
-			var filename = ev.dataTransfer.files[i].name
-			var lastfile = 0
-			if (globaldb.quomediaviewdb[3].qmv_files.length !== 0) {
-				var lastfile = globaldb.quomediaviewdb[3].qmv_files.length - 1
-			}
-			var nextavailableid = 0
-			if (globaldb.quomediaviewdb[3].qmv_files.length !== 0) {
-				var nextavailableid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[lastfile])[0] * 1 + 1
-			}
-			var emptyfilestring = '{"' + nextavailableid + '":[{"name":["' + filename + '","1"]},{"tags":[]}]}'
-			var emptyfileobject = JSON.parse(emptyfilestring)
-			globaldb.quomediaviewdb[3].qmv_files.push(emptyfileobject)
+	}  else {
+		for (var i = 0; i < droppeditems.dataTransfer.files.length; i++) {
+			var file = droppeditems.dataTransfer.files[i]
+			file_add(file.name, file.size, file.type)
 		}
-		changeguard = 1
-		changesnotify()
-		searching("")
-		inmediaedit = newfilescount - 1
-		editmedia()
 	}
+	warn_changes_made()
+	render_tags("start")
 }
 
-//preventing dragged files from opening
-function dragOverHandler(ev) {
-	ev.preventDefault()
+// Prevents openning dragged files by browser
+function item_drag(item) {
+	item.preventDefault()
 }
 
-//handles editing tags and user interface
-function tagcellswitch(tagcelldiv,switchtype,tagcolor,mode) {
-	//mode = visual - only changes visuals on the site, used on loading the file without changing it
-	//mode = full - changes both visuals and tags in database
-	var backcolor = "black"
-	if (mode === "visual") {
-		var tagcellarray = tagcelldiv.split("_")
-		var tagcellid = tagcellarray[0] + "_tagcell"
-		document.getElementById(tagcellid).checked = true
-		document.getElementById(tagcelldiv).style.color = backcolor
-		document.getElementById(tagcelldiv).style.backgroundColor = tagcolor
-	} else if (mode === "full") {
-		
-		/*
-		rework it in the future when I'm too lazy to only pick one of the border tags
-		* 
-		if (switchtype === "radio") {
-			//reset all to default
-			var tagarray = tagcelldiv.split("_")
-			var tagid = tagarray[0]
-		
-			var a1_tcd = document.getElementById("a1_tagcelldiv")
-			a1_tcd.style.backgroundColor = backcolor
-			a1_tcd.style.color = tagcolor
-		
-			var a2_tcd = document.getElementById("a2_tagcelldiv")
-			a2_tcd.style.backgroundColor = backcolor
-			a2_tcd.style.color = tagcolor
-		
-			var a3_tcd = document.getElementById("a3_tagcelldiv")
-			a3_tcd.style.backgroundColor = backcolor
-			a3_tcd.style.color = tagcolor
-		
-			//highlight active
-			document.getElementById(tagcelldiv).style.backgroundColor = tagcolor
-			document.getElementById(tagcelldiv).style.color = backcolor
-		
-			//update tag in file
-			var fileslen = globaldb.qviewdb[3].qv_files.length
-			for (var i = 0; i < fileslen; i++) {
-				var fileid = Object.keys(globaldb.qviewdb[3].qv_files[i])[0]
-				if (testarray[inmediaedit][0] === fileid) {
-					var fileparamslen = globaldb.qviewdb[3].qv_files[i][fileid].length
-					for (var j = 0; j < fileparamslen; j++) {
-						if (Object.keys(globaldb.qviewdb[3].qv_files[i][fileid][j])[0] === "tags") {
-							var tagidplace = globaldb.qviewdb[3].qv_files[i][fileid][j].indexOf(tagid)
-							console.log(tagidplace)
-						}
-					}
-				}
-			}	
-		
-		//update tag count
-		
-		} else 
-		*/
-		if (switchtype === "checkbox") {
-			var tagcellarray = tagcelldiv.split("_")
-			var tagcellid = tagcellarray[0] + "_tagcell"
-			var tagid = tagcellarray[0]
-			if (document.getElementById(tagcellid).checked === true) {
-				//visuals
-				document.getElementById(tagcelldiv).style.color = backcolor
-				document.getElementById(tagcelldiv).style.backgroundColor = tagcolor
-				
-				//tag count
-				var taggroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-				var tagname = ""
-				for (var i = 0; i < taggroupslen; i++) {
-					var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-					var tagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-					for (var j = 0; j < tagslen; j++) {
-						if (Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0] === tagid) {
-							tagname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][1]
-							globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][0] += 1
-						}
-					}
-				}
-				
-				//file
-				var fileslen = globaldb.quomediaviewdb[3].qmv_files.length
-				for (var i = 0; i < fileslen; i++) {
-					var fileid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0]
-					if (testarray[inmediaedit][0] === fileid) {
-						var fileparamslen = globaldb.quomediaviewdb[3].qmv_files[i][fileid].length
-						for (var j = 0; j < fileparamslen; j++) {
-							if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0] === "tags") {
-								//file
-								globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags.push(tagid)
-								//search results
-								testarray[inmediaedit][6].push(tagid)
-								testarray[inmediaedit][7].push(tagname)
-							}
-						}
-					}
-				}
-			} else {
-				//visuals
-				document.getElementById(tagcelldiv).style.color = tagcolor
-				document.getElementById(tagcelldiv).style.backgroundColor = backcolor
-				
-				//tag count
-				var taggroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-				var tagname = ""
-				for (var i = 0; i < taggroupslen; i++) {
-					var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-					var tagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-					for (var j = 0; j < tagslen; j++) {
-						if (Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0] === tagid) {
-							tagname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][1]
-							globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][0] -= 1
-						}
-					}
-				}
-				
-				//file
-				var fileslen = globaldb.quomediaviewdb[3].qmv_files.length
-				for (var i = 0; i < fileslen; i++) {
-					var fileid = Object.keys(globaldb.quomediaviewdb[3].qmv_files[i])[0]
-					if (testarray[inmediaedit][0] === fileid) {
-						var fileparamslen = globaldb.quomediaviewdb[3].qmv_files[i][fileid].length
-						for (var j = 0; j < fileparamslen; j++) {
-							if (Object.keys(globaldb.quomediaviewdb[3].qmv_files[i][fileid][j])[0] === "tags") {
-								//file
-								var filetagidplace = globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags.indexOf(tagid)
-								globaldb.quomediaviewdb[3].qmv_files[i][fileid][j].tags.splice(filetagidplace,1)
-								//search results
-								var searchresultsidplace = testarray[inmediaedit][6].indexOf(tagid)
-								testarray[inmediaedit][6].splice(searchresultsidplace,1)
-								testarray[inmediaedit][7].splice(searchresultsidplace,1)
-							}
-						}
-					}
-				}
-			}
-		}
-	changeguard = 1
-	changesnotify()	
-	}
-}
-
-//goes to previous media
-function mvb_prev() {
-	if (inmediaedit !== 0) {
-		inmediaedit -= 1
-		editmedia()
-	}
-}
-
-//goes to next media
-function mvb_next() {
-	if(inmediaedit !== testarray.length - 1) {
-		inmediaedit += 1
-		editmedia()
-	}
-}
-
-//opens tag menu to add new tags and rename existing ones
-function edittags() {
-	document.getElementById("menusidesettings").style.display = "none"
-	document.getElementById("maingridview").style.display = "none"
-	document.getElementById("tagsedit").style.display = "block"
-	document.getElementById("menulist").style.display = "block"
-	tagseditloader()
-}
-
-//closes every other window and opens maingridview
-function backtomain() {
-	document.getElementById("mediaedit").style.display = "none"
+// Closes opened view sections
+function section_close(selectedsection) {
+	document.getElementById("filesedit").style.display = "none"
 	document.getElementById("tagsedit").style.display = "none"
-	document.getElementById("menusidesettings").style.display = "none"
-	editguard = 0
-	tagsmenu()
-	document.getElementById("maingridview").style.display = "block"
-	document.getElementById("menulist").style.display = "block"
-	document.getElementById("navigation").style.visibility = "visible"
+	document.getElementById("menu_sidesettings").style.display = "none"
+	document.getElementById("qmvinfostats").style.display = "none"
+	document.getElementById("searchresults").style.display = "block"
+	document.getElementById("menu_list").style.display = "block"
+	document.getElementById("searchresults_pagination").style.visibility = "visible"
+	document.getElementById("searchresults_main").style.width = "100%"
+	document.getElementById("sidepanelpreview").style.display = "none"
+	document.getElementById("lightbox").style.display = "none"
+	lightbox_slideshow("stop")
+	window.removeEventListener("keydown", keyboard_shortcuts)
+	document.getElementById("menu").style.display = "block"
+	switch (selectedsection) {
+		case "generalexit":
+			render_tags("")
+			break;
+		case "filesedit":
+			render_results()
+			break;
+	}
 }
 
+// Changes settings without save button
 function settings_changer(settchanged) {
-	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
+	var settingslen = loaded_qmv.quomediaviewdb[0].qmv_settings.length
 	for (var i = 0; i < settingslen; i++) {
 		switch (settchanged) {
-			case "thumbnails":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbnails") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].thumbnails = document.getElementById("sidesett_thumb").checked
-					thumbnails = document.getElementById("sidesett_thumb").checked
+			case "customthumbnails":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "customthumbnails") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].customthumbnails = document.getElementById("sidesetting_customthumbnails").checked
+					customthumbnails = document.getElementById("sidesetting_customthumbnails").checked
 					searching(document.getElementById('searchbar').value)
 				}
 				break;
-			case "gridcount":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "gridcount") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].gridcount = document.getElementById("sidesett_maxgrid").value
-					maxgridcount = document.getElementById("sidesett_maxgrid").value
-					currentpage = 1
+			case "maxshownresults":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "maxshownresults") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].maxshownresults = document.getElementById("sidesetting_maxshownresults").value
+					maxshownresults = document.getElementById("sidesetting_maxshownresults").value
+					current_page = 1
 					searching(document.getElementById('searchbar').value)
 				}
 				break;
 			case "infoicon":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "infoicon") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].infoicon = document.getElementById("sidesett_infoicon").value
-					infoicon = document.getElementById("sidesett_infoicon").value
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "infoicon") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].infoicon = document.getElementById("sidesetting_infoicon").value
+					infoicon = document.getElementById("sidesetting_infoicon").value
 					searching(document.getElementById('searchbar').value)
 				}
 				break;
 			case "baselocation":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "baselocation") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].baselocation = document.getElementById("sidesett_baselocation").value
-					baselocation = document.getElementById("sidesett_baselocation").value
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "baselocation") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].baselocation = document.getElementById("sidesetting_baselocation").value
+					baselocation = document.getElementById("sidesetting_baselocation").value
 					searching(document.getElementById('searchbar').value)
 				}
 				break;
 			case "searchbar":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "searchbar") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].searchbar = document.getElementById("sidesett_searchbar").value
-					document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + document.getElementById("sidesett_searchbar").value + "}"
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "searchbar") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].searchbar = document.getElementById("sidesetting_searchbar").value
+					document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + document.getElementById("sidesetting_searchbar").value + "}"
 				}
 				break;
-			case "banbar":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "banbar") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].banbar = document.getElementById("sidesett_blockbar").value
-					document.getElementById("easystylechange_blockbar").innerHTML = "#banbar {background-color: " + document.getElementById("sidesett_blockbar").value + "}"
+			case "blocklist":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "blocklist") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].blocklist = document.getElementById("sidesetting_blocklist").value
+					document.getElementById("easystylechange_blocklist").innerHTML = "#blocklist {color: " + document.getElementById("sidesetting_blocklist").value + "}"
 				}
 				break;
 			case "b_picture":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].b_picture = document.getElementById("sidesett_b_picture").value
-					document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: " + gridbordersize + "px " + gridborderstyle + " " + document.getElementById("sidesett_b_picture").value + "}"
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_picture = document.getElementById("sidesetting_b_picture").value
+					document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: " + filethumbordersize + "px " + filethumborderstyle + " " + document.getElementById("sidesetting_b_picture").value + "}"
 				}
 				break;
 			case "b_animated":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].b_animated = document.getElementById("sidesett_b_animated").value
-					document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: " + gridbordersize + "px " + gridborderstyle + " " + document.getElementById("sidesett_b_animated").value + "}"
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_animated = document.getElementById("sidesetting_b_animated").value
+					document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: " + filethumbordersize + "px " + filethumborderstyle + " " + document.getElementById("sidesetting_b_animated").value + "}"
 				}
 				break;
 			case "b_video":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].b_video = document.getElementById("sidesett_b_video").value
-					document.getElementById("easystylechange_b_video").innerHTML = ".video {border: " + gridbordersize + "px " + gridborderstyle + " " + document.getElementById("sidesett_b_video").value + "}"
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_video = document.getElementById("sidesetting_b_video").value
+					document.getElementById("easystylechange_b_video").innerHTML = ".video {border: " + filethumbordersize + "px " + filethumborderstyle + " " + document.getElementById("sidesetting_b_video").value + "}"
 				}
 				break;
-			case "aspectratio":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "aspectratio") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio = document.getElementById("sidesett_aspratio").checked
-					gridaspectratio = document.getElementById("sidesett_aspratio").checked
-					gridthumbupdt()
+			case "filethumbaspectratio":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "filethumbaspectratio") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbaspectratio = document.getElementById("sidesetting_filethumbaspectratio").checked
+					filethumbaspectratio = document.getElementById("sidesetting_filethumbaspectratio").checked
+					thumbnails_styling()
 				}
 				break;
-			case "thumbsize":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbsize") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize = document.getElementById("sidesett_thmbsize").value
-					gridthumbsize = document.getElementById("sidesett_thmbsize").value
-					gridthumbupdt()
+			case "filethumbsize":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "filethumbsize") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbsize = document.getElementById("sidesetting_filethumbsize").value
+					filethumbsize = document.getElementById("sidesetting_filethumbsize").value
+					thumbnails_styling()
 				}
 				break;
 			case "sidepanelwidth":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "sidepanelwidth") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth = document.getElementById("sidesett_sppsize").value
-					sidepanelwidth = document.getElementById("sidesett_sppsize").value
-					if (sidepreviewpanelactive === true) {
-						sidepanelpreviewer()
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "sidepanelwidth") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].sidepanelwidth = document.getElementById("sidesetting_sidepanelwidth").value
+					sidepanelwidth = document.getElementById("sidesetting_sidepanelwidth").value
+					if (document.getElementById("sidepanelpreview").style.display === "block") {
+						section_open("sidepanelpreview")
 					}
 				}
 				break;
 			case "previewresults":
-				if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "previewresults") {
-					globaldb.quomediaviewdb[0].qmv_settings[i].previewresults = document.getElementById("sidesett_prevresults").checked
-					previewresults = document.getElementById("sidesett_prevresults").checked
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "previewresults") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].previewresults = document.getElementById("sidesetting_previewresults").checked
+					previewresults = document.getElementById("sidesetting_previewresults").checked
+					searching(document.getElementById('searchbar').value)
+				}
+				break;
+			case "chosentheme_ultradark":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
+					document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
+				}
+				break;
+			case "chosentheme_lightlite":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme = "lightlite"
+					document.getElementById("themingfile").href = "qmvfiles/theme_lightlite.css"
+				}
+				break;
+			case "leftmouseclick_sidepanelpreview":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "leftmouseclick") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].leftmouseclick = "sidepanelpreview"
+					leftmouseclick = "sidepanelpreview"
+				}
+				break;
+			case "leftmouseclick_lightbox":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "leftmouseclick") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].leftmouseclick = "lightbox"
+					leftmouseclick = "lightbox"
+				}
+				break;
+			case "resultsviewmode_gridview":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "gridview"
+					resultsviewmode = "gridview"
+					searching(document.getElementById('searchbar').value)
+				}
+				break;
+			case "resultsviewmode_listview":
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "listview"
+					resultsviewmode = "listview"
 					searching(document.getElementById('searchbar').value)
 				}
 				break;
 		}
 	}
-	changeguard = 1
-	changesnotify()
+	warn_changes_made()
 }
 
-//imports tags to tags editor
-function tagseditloader() {
-	var allgroupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-	taggroupslen = allgroupslen
-	var formcontent = ""
-	for (var i = 0; i < allgroupslen; i++) {
-		var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-		var tagscolor = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[1]
-		var groupname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[0]
-		//group name
-		formcontent += "<div id='tg_div_" + i + "'><input type='text' id='" + groupid + "_n' value='" + groupname + "' onchange='tagupdate(\"" + groupid + "_n\")'/> "
-		//group color
-		formcontent += "<label for='" + groupid + "_c'>Color:</label><input type='color' id='" + groupid + "_c' value='" + tagscolor + "' onchange='tagupdate(\"" + groupid + "_c\")'/> "
-		//hide checkbox
-		formcontent += "<label for='" + groupid + "_h'>Hide tag group:</label><input type='checkbox' id='" + groupid + "_h' onchange='tagupdate(\"" + groupid + "_h\")'"
-		if (globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[2] === "hide") {
-			formcontent += " checked /> "
-		} else {
-			formcontent += " /> "
-		}
-		//delete button
-		formcontent += "<label>Delete tag group:</label><input type='button' onclick='deletetaggroup(\"tg_div_" + i + "\", \"" + groupid + "\")' value='X' /><br /><br /><div id='tg_tags_" + i + "'>"
-		var tagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-		for (var j = 0; j < tagslen; j++) {
-			var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0]
-			var taglen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid].length
-			var tagname = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][1]
-			//tag name
-			formcontent += "<div id='" + tagid + "'>* <input type='text' id='" + tagid + "_tn' value='" + tagname + "' onchange='tagupdate(\"" + tagid + "_tn\")'/> "
-			//tag description
-			formcontent += "<input type='text' id='" + tagid + "_td' placeholder='description' value='"
-			// checks if the tag has description
-			if (taglen === 3) {
-				if (typeof globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][2] === "string") {
-					formcontent += globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][2]
-				} 
-			}
-			formcontent += "' onchange='tagupdate(\"" + tagid + "_td\")'/> <input type='button' onclick='deletetag(\"" + tagid + "\")' value='X' /><br /></div>"
-		}
-		formcontent += "</div><input type='button' onclick='addnewtag(\"tg_tags_" + i + "\", \"" + groupid + "\")' value='+' /><br /><br /></div><br />"
-	}
-	formcontent += "<div id='newtaggroupadderdiv'><input type='button' id='newtaggroupadder' onclick='addnewtaggroup()' value='New tag group' /></div>"
-	document.getElementById("tagsform").innerHTML = formcontent
-}
-
-//updates tags
-function tagupdate(tagdiv) {
-	//xxx_n - tag group name
-	//xxx_c - tag group color
-	//xxx_h - tag group hide
-	//yy_tn - tag name
-	//yy_td - tag description
-	
-	var upcheck = tagdiv.split("_")
-	switch (upcheck[1]) {
-		case "n":
-			var tglen = globaldb.quomediaviewdb[2].qmv_tags.length
-			for (var i = 0; i < tglen; i++) {
-				var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-				if (groupid === upcheck[0]) {
-					globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[0] = document.getElementById(tagdiv).value
-					changeguard = 1
-					changesnotify()
-					tagsmenu()
-				}
-			}
-			break;
-		case "c":
-			var tglen = globaldb.quomediaviewdb[2].qmv_tags.length
-			for (var i = 0; i < tglen; i++) {
-				var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-				if (groupid === upcheck[0]) {
-					globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[1] = document.getElementById(tagdiv).value
-					changeguard = 1
-					changesnotify()
-					tagsmenu()
-				}
-			}
-			break;
-		case "h":
-			var tglen = globaldb.quomediaviewdb[2].qmv_tags.length
-			for (var i = 0; i < tglen; i++) {
-				var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-				if (groupid === upcheck[0]) {
-					var hidebox = document.getElementById(tagdiv).checked
-					if (hidebox === true) {
-						globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[2] = "hide"
-					} else {
-						globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[2] = "show"
-					}
-					changeguard = 1
-					changesnotify()
-					tagsmenu()
-				}
-			}
-			break;
-		case "tn":
-			var tglen = globaldb.quomediaviewdb[2].qmv_tags.length
-			for (var i = 0; i < tglen; i++) {
-				var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-				var tagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-				for (var j = 0; j < tagslen; j++) {
-					var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0]
-					if (tagid === upcheck[0]) {
-						globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][1] = document.getElementById(tagdiv).value
-						changeguard = 1
-						changesnotify()
-						tagsmenu()
-					}
-				}
-			}
-			break;
-		case "td":
-			var tglen = globaldb.quomediaviewdb[2].qmv_tags.length
-			for (var i = 0; i < tglen; i++) {
-				var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-				var tagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-				for (var j = 0; j < tagslen; j++) {
-					var tagid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0]
-					if (tagid === upcheck[0]) {
-						if (document.getElementById(tagdiv).value === "") {
-							globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid].splice(2,1)
-						} else {
-							globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j][tagid][2] = document.getElementById(tagdiv).value
-						}
-						changeguard = 1
-						changesnotify()
-						tagsmenu()
-					}
-				}
-			}
-			break;												
-	}
-}
-
-//add new tag
-function addnewtag(tagsdivname,taggroupid) {
-	var tglen = globaldb.quomediaviewdb[2].qmv_tags.length
-	for (var i = 0; i < tglen; i++) {
-		var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-		if (groupid === taggroupid) {
-			var lettercount = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[3].split("_")
-			var newnumber = lettercount[1] * 1 + 1
-			var newtagid = lettercount[0] + newnumber
-			document.getElementById(tagsdivname).innerHTML += "<div id='" + newtagid + "'>* <input type='text' id='" + newtagid + "_tn' onchange='tagupdate(\"" + newtagid + "_tn\")'/> <input type='text' id='" + newtagid + "_td' placeholder='description' onchange='tagupdate(\"" + newtagid + "_td\")'/> <input type='button' onclick='deletetag(\"" + newtagid + "\")' value='X' />"
-			
-			//add to globaldb
-			globaldb.quomediaviewdb[2].qmv_tags[i][groupid][0].settings[3] = lettercount[0] + "_" + newnumber
-			var tagstring = '{"' + newtagid + '":[0,""]}'
-			var tagobject = JSON.parse(tagstring)
-			globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.push(tagobject)
-			
-			changeguard = 1
-			changesnotify()
-		}
-	}
-}
-
-//deletes tag
-function deletetag(tagdiv) {
-	while (document.getElementById(tagdiv).hasChildNodes()) {  
-		document.getElementById(tagdiv).removeChild(document.getElementById(tagdiv).firstChild);
-	}
-	var groupslen = globaldb.quomediaviewdb[2].qmv_tags.length
-	for (var i = 0; i < groupslen; i++) {
-		var groupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0]
-		var tagslen = globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.length
-		for (var j = 0; j < tagslen; j++) {
-			if (Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags[j])[0] === tagdiv) {
-				globaldb.quomediaviewdb[2].qmv_tags[i][groupid][1].tags.splice(j,1)
-				changeguard = 1
-				changesnotify()
-				tagsmenu()
-				break;
-			}
-		}
-	}
-}
-
-//adds new tag group
-function addnewtaggroup() {
-	var lastgroup = globaldb.quomediaviewdb[2].qmv_tags.length - 1
-	var lastgroupid = Object.keys(globaldb.quomediaviewdb[2].qmv_tags[lastgroup])[0]
-	var groupidarray = lastgroupid.split("-")
-	var newgroupnumber = groupidarray[1] * 1 + 1
-	var newgroupid = "group-" + newgroupnumber
-	var lettersarray = "abcdefghijklmnopqrstuvwxyz".split("")
-	document.getElementById("tagsform").removeChild(document.getElementById("newtaggroupadderdiv"))
-	document.getElementById("tagsform").innerHTML += "<div id='tg_div_" + newgroupnumber + "' style='background-color:#050505;'><input type='text' id='" + newgroupid + "_n' onchange='tagupdate(\"" + newgroupid + "_n\")' value='" + newgroupid + "-name'/> <label for='" + newgroupid + "_c'>Color:</label><input type='color' id='" + newgroupid + "_c' onchange='tagupdate(\"" + newgroupid + "_c\")' value='#808080'/> <label for='" + newgroupid + "_h'>Hide tag group:</label><input type='checkbox' id='" + newgroupid + "_h' onchange='tagupdate(\"" + newgroupid + "_h\")' /> <label>Delete tag group:</label><input type='button' onclick='deletetaggroup(\"tg_div_" + newgroupnumber + "\", \"" + newgroupid + "\")' value='X' /><br /><br /><div id='tg_tags_" + newgroupnumber + "'></div><input type='button' onclick='addnewtag(\"tg_tags_" + newgroupnumber + "\", \"" + newgroupid + "\")' value='+' /><br /><br /></div><br /><div id='newtaggroupadderdiv'><input type='button' id='newtaggroupadder' onclick='addnewtaggroup()' value='New tag group' /></div>"
-	
-	
-	//add to globaldb
-	var jsonletterid = lettersarray[newgroupnumber - 1] + "_0"
-	var taggroupstring = '{"' + newgroupid + '":[{"settings":["' + newgroupid + '-name","#808080","show","' + jsonletterid + '"]},{"tags":[]}]}'
-	var taggroupobject = JSON.parse(taggroupstring)
-	globaldb.quomediaviewdb[2].qmv_tags.push(taggroupobject)
-	
-	changeguard = 1
-	changesnotify()
-}
-
-//deletes whole tag group
-function deletetaggroup(taggroupdiv, taggroupname) {
-	while (document.getElementById(taggroupdiv).hasChildNodes()) {  
-		document.getElementById(taggroupdiv).removeChild(document.getElementById(taggroupdiv).firstChild);
-	}
-	var grouplen = globaldb.quomediaviewdb[2].qmv_tags.length
-	for (var i = 0; i < grouplen; i++) {
-		if (Object.keys(globaldb.quomediaviewdb[2].qmv_tags[i])[0] === taggroupname) {
-			globaldb.quomediaviewdb[2].qmv_tags.splice(i,1)
-			changeguard = 1
-			changesnotify()
-			tagsmenu()
-			break;
-		}
-	}
-}
-
-//resets default settings
-function resetsettings() {
-	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
+// Resets default settings
+function settings_reset() {
+	var settingslen = loaded_qmv.quomediaviewdb[0].qmv_settings.length
 	for (var i = 0; i < settingslen; i++) {
-		switch (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0]) {
-			case "thumbnails":
-				globaldb.quomediaviewdb[0].qmv_settings[i].thumbnails = true
-				thumbnails = true
-				document.getElementById("sidesett_thumb").checked = thumbnails
+		switch (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0]) {
+			case "customthumbnails":
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].customthumbnails = true
+				customthumbnails = true
+				document.getElementById("sidesetting_customthumbnails").checked = customthumbnails
 				break;
-			case "gridcount":
-				globaldb.quomediaviewdb[0].qmv_settings[i].gridcount = 28
-				maxgridcount = 28
-				currentpage = 1
-				document.getElementById("sidesett_maxgrid").value = maxgridcount
+			case "maxshownresults":
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].maxshownresults = 32
+				maxshownresults = 32
+				current_page = 1
+				document.getElementById("sidesetting_maxshownresults").value = maxshownresults
 				break;
 			case "infoicon":
-				globaldb.quomediaviewdb[0].qmv_settings[i].infoicon = "&#x2609;"
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].infoicon = "&#x2609;"
 				infoicon = "&#x2609;"
-				document.getElementById("sidesett_infoicon").value = infoicon
+				document.getElementById("sidesetting_infoicon").value = infoicon
 				break;
 			case "searchbar":
-				globaldb.quomediaviewdb[0].qmv_settings[i].searchbar = "#90ee90"
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].searchbar = "#90ee90"
 				document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + "#90ee90" + "}"
-				document.getElementById("sidesett_searchbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].searchbar
+				document.getElementById("sidesetting_searchbar").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].searchbar
 				break;
-			case "banbar":
-				globaldb.quomediaviewdb[0].qmv_settings[i].banbar = "#ffc0cb"
-				document.getElementById("easystylechange_blockbar").innerHTML = "#banbar {background-color: " + "#ffc0cb" + "}"
-				document.getElementById("sidesett_blockbar").value = globaldb.quomediaviewdb[0].qmv_settings[i].banbar
+			case "blocklist":
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].blocklist = "#ffc0cb"
+				document.getElementById("easystylechange_blocklist").innerHTML = "#blocklist {color: " + "#ffc0cb" + "}"
+				document.getElementById("sidesetting_blocklist").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].blocklist
 				break;
 			case "b_picture":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_picture = "#808080"
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_picture = "#808080"
 				document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: 2px solid " + "#808080" + "}"
-				document.getElementById("sidesett_b_picture").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_picture
+				document.getElementById("sidesetting_b_picture").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_picture
 				break;
 			case "b_animated":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_animated = "#ffa500"
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_animated = "#ffa500"
 				document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: 2px solid " + "#ffa500" + "}"
-				document.getElementById("sidesett_b_animated").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_animated
+				document.getElementById("sidesetting_b_animated").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_animated
 				break;
 			case "b_video":
-				globaldb.quomediaviewdb[0].qmv_settings[i].b_video = "#0000ff"
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_video = "#0000ff"
 				document.getElementById("easystylechange_b_video").innerHTML = ".video {border: 2px solid " + "#0000ff" + "}"
-				document.getElementById("sidesett_b_video").value = globaldb.quomediaviewdb[0].qmv_settings[i].b_video
+				document.getElementById("sidesetting_b_video").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_video
 				break;
 			case "baselocation":
-				globaldb.quomediaviewdb[0].qmv_settings[i].baselocation = ""
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].baselocation = ""
 				baselocation = ""
-				document.getElementById("sidesett_baselocation").value = baselocation
+				document.getElementById("sidesetting_baselocation").value = baselocation
 				break;
 			case "chosentheme":
-				globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
 				document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
-				document.getElementById("darkthemesw").checked = true
+				document.getElementById("sidesetting_chosentheme_ultradark").checked = true
 				break;
-			case "aspectratio":
-				globaldb.quomediaviewdb[0].qmv_settings[i].aspectratio = true
-				gridaspectratio = true
-				document.getElementById("sidesett_aspratio").checked = true
+			case "filethumbaspectratio":
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbaspectratio = true
+				filethumbaspectratio = true
+				document.getElementById("sidesetting_filethumbaspectratio").checked = true
 				break;
-			case "thumbsize":
-				globaldb.quomediaviewdb[0].qmv_settings[i].thumbsize = 192
-				gridthumbsize = 192
-				document.getElementById("sidesett_thmbsize").value = 192
+			case "filethumbsize":
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbsize = 192
+				filethumbsize = 192
+				document.getElementById("sidesetting_filethumbsize").value = 192
 				break;
 			case "sidepanelwidth":
-				globaldb.quomediaviewdb[0].qmv_settings[i].sidepanelwidth = 36
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].sidepanelwidth = 36
 				sidepanelwidth = 36
-				document.getElementById("sidesett_sppsize").value = 36
-				break;
-			case "leftmclick":
-				globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick = "sidepreviewpanel"
-				leftmclick = "sidepreviewpanel"
-				document.getElementById("sidesett_sidepanelsw").checked = true
-				if (sidepreviewpanelactive === true) {
-					sidepanelpreviewer()
+				document.getElementById("sidesetting_sidepanelwidth").value = 36
+				if (document.getElementById("sidepanelpreview").style.display === "block") {
+					section_open("sidepanelpreview")
 				}
 				break;
+			case "leftmouseclick":
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].leftmouseclick = "sidepanelpreview"
+				leftmouseclick = "sidepanelpreview"
+				document.getElementById("sidesetting_leftmouseclick_sidepanelpreview").checked = true
+				break;
 			case "previewresults":
-				globaldb.quomediaviewdb[0].qmv_settings[i].previewresults = true
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].previewresults = true
 				previewresults = true
-				document.getElementById("sidesett_prevresults").checked = true
+				document.getElementById("sidesetting_previewresults").checked = true
 				break;
 			case "resultsviewmode":
-				globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "gridview"
+				loaded_qmv.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "gridview"
 				resultsviewmode = "gridview"
-				document.getElementById("sidesett_gridressw").checked = true
+				document.getElementById("sidesetting_resultsviewmode_gridview").checked = true
 				break;
 		}
 	}
 	searching(document.getElementById('searchbar').value)
-	gridthumbupdt()
-	changeguard = 1
-	changesnotify()
+	thumbnails_styling()
+	warn_changes_made()
 }
 
-//exports new empty database in one line string
-function createnewqmvdb() {
-	document.getElementById("jsonsaveholder").value = qmvdbtemplate
-}
-
-//exports the full database in one line string
-function saveqmv() {
-	var savedata = JSON.stringify(globaldb)
-	savedata = savedata.replace("\\","")
-	document.getElementById("jsonsaveholder").value = savedata
-}
-
-//theme switch light or dark
-function themeswitch(seltheme) {
-	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
-	for (var i = 0; i < settingslen; i++) {
-		if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
-			switch (seltheme) {
-				case "dark":
-					globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
-					document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
-					break;
-				case "light":
-					globaldb.quomediaviewdb[0].qmv_settings[i].chosentheme = "lightlite"
-					document.getElementById("themingfile").href = "qmvfiles/theme_lightlite.css"
-					break;
-			}
-		}
+// Exports the full QMV database in one line string for saving
+function export_qmv(state) {
+	if (state === "empty") {
+		document.getElementById('qmv_json_export_holder').value = qmv_data_template
+	} else if (state === "current") {
+		document.getElementById("qmv_json_export_holder").value = JSON.stringify(loaded_qmv).replace("\\","")
 	}
 }
 
-//when called writes a combo of selected size and aspect ratio to styling
-function gridthumbupdt() {
-	if (gridaspectratio === true) {
-		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { max-width: " + gridthumbsize + "px; max-height: " + gridthumbsize + "px; } .listviewiconbox { width: " + 20 + "px; height: " + 20 + "px; } .listviewicon { max-width: " + 20 + "px; max-height: " + 20 + "px; }"
-	} else {
-		document.getElementById("easystylechange_gridsizespect").innerHTML = ".thmbnl_box { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .thmbnl { width: " + gridthumbsize + "px; height: " + gridthumbsize + "px; } .listviewiconbox { width: " + 20 + "px; height: " + 20 + "px; } .listviewicon { width: " + 20 + "px; height: " + 20 + "px; }"
+// Writes a combo of selected size and aspect ratio for styling the thumbnails
+function thumbnails_styling() {
+	var thmb_aspect = filethumbaspectratio
+	var thmb_style = ".thmbnl_box { width: " + filethumbsize + "px; height: " + filethumbsize + "px; } .thmbnl { "
+	if (thmb_aspect === true) {
+		thmb_style += "max-"
 	}
+	thmb_style += "width: " + filethumbsize + "px; "
+	if (thmb_aspect === true) {
+		thmb_style += "max-"
+	}
+	thmb_style += "height: " + filethumbsize + "px; } .listviewiconbox { width: " + 20 + "px; height: " + 20 + "px; } .listviewicon { "
+	if (thmb_aspect === true) {
+		thmb_style += "max-"
+	}
+	thmb_style += "width: " + 20 + "px; "
+	if (thmb_aspect === true) {
+		thmb_style += "max-"
+	}
+	thmb_style += "height: " + 20 + "px; }"
+	document.getElementById("easystylechange_filethumbs").innerHTML = thmb_style
 }
 
-//checks if qmv_settings are up to date with all features
+// Checks if qmv_settings in QMV JSON are up to date with all new features
 function qmvsettings_updater() {
-	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
-	var currentsettingslist = ["thumbnails", "gridcount", "infoicon", "searchbar", "banbar", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "aspectratio", "thumbsize", "sidepanelwidth", "leftmclick", "previewresults", "resultsviewmode"]
+	var settingslen = loaded_qmv.quomediaviewdb[0].qmv_settings.length
+	var currentsettingslist = ["customthumbnails", "maxshownresults", "infoicon", "searchbar", "blocklist", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "filethumbaspectratio", "filethumbsize", "sidepanelwidth", "leftmouseclick", "previewresults", "resultsviewmode","version","creationdate"]
 	var currentsettingslistlen = currentsettingslist.length
 	for (var j = 0; j < currentsettingslistlen; j++) {
 		switch (currentsettingslist[j]) {
-			case "thumbnails":
+			case "customthumbnails":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbnails") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "customthumbnails") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"thumbnails": true}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						var texttopush = JSON.parse('{"customthumbnails": true}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
-			case "gridcount":
+			case "maxshownresults":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "gridcount") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "maxshownresults") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"gridcount": 28}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						var texttopush = JSON.parse('{"maxshownresults": 32}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "infoicon":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "infoicon") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "infoicon") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"infoicon": "&#x2609;"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "searchbar":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "searchbar") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "searchbar") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"searchbar": "#90ee90"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
-			case "banbar":
+			case "blocklist":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "banbar") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "blocklist") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"banbar": "#ffc0cb"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						var texttopush = JSON.parse('{"blocklist": "#ffc0cb"}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "b_picture":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"b_picture": "#808080"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "b_animated":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"b_animated": "#ffa500"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "b_video":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"b_video": "#0000ff"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "baselocation":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "baselocation") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "baselocation") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"baselocation": ""}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "chosentheme":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"chosentheme": "ultradark"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;				
-			case "aspectratio":
+			case "filethumbaspectratio":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "aspectratio") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "filethumbaspectratio") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"aspectratio": true}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						var texttopush = JSON.parse('{"filethumbaspectratio": true}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
-			case "thumbsize":
+			case "filethumbsize":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "thumbsize") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "filethumbsize") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"thumbsize": 192}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						var texttopush = JSON.parse('{"filethumbsize": 192}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "sidepanelwidth":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "sidepanelwidth") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "sidepanelwidth") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"sidepanelwidth": 36}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;				
-			case "leftmclick":
+			case "leftmouseclick":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "leftmclick") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "leftmouseclick") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"leftmclick": "sidepreviewpanel"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						var texttopush = JSON.parse('{"leftmouseclick": "sidepanelpreview"}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "previewresults":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "previewresults") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "previewresults") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"previewresults": true}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
 			case "resultsviewmode":
 				var foundsetting = false
 				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
 						foundsetting = true
 					} else if (i === settingslen - 1 && foundsetting === false) {
 						var texttopush = JSON.parse('{"resultsviewmode": "gridview"}')
-						globaldb.quomediaviewdb[0].qmv_settings.push(texttopush)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "version":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "version") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var texttopush = JSON.parse('{"version": "1.0"}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
+					}
+				}
+				break;
+			case "creationdate":
+				var foundsetting = false
+				for (var i = 0; i < settingslen; i++) {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "creationdate") {
+						foundsetting = true
+					} else if (i === settingslen - 1 && foundsetting === false) {
+						var datestring = new Date().toJSON().slice(0, 10)
+						var texttopush = JSON.parse('{"creationdate": "' + datestring + '"}')
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
 					}
 				}
 				break;
@@ -2127,142 +1538,159 @@ function qmvsettings_updater() {
 }
 
 //automatically moves to next picture in ligthbox
-function lightbox_slideshow(state) {
+function lightbox_slideshow(state, direction) {
 	if (state === "start") {
 		var slideshowtiming = prompt("Enter how many seconds each file should stay on screen before changing", "5") * 1000
 		if (slideshowtiming !== 0) {
-			document.getElementById("bvbtempbuttonsbar").style.display = "none"
-			document.getElementById("bvbslideshowactive").style.display = "block"
-			lightboxtimer = setInterval(bvb_next ,slideshowtiming)
+			document.getElementById("lightbox_buttonstopbar").style.display = "none"
+			document.getElementById("lightbox_slideshowbtnoff").style.display = "block"
+			lightbox_interval = setInterval(file_switch, slideshowtiming, direction, "lightbox")
 		}
 	} else if (state === "stop") {
-		clearInterval(lightboxtimer)
-		document.getElementById("bvbtempbuttonsbar").style.display = "block"
-		document.getElementById("bvbslideshowactive").style.display = "none"
+		clearInterval(lightbox_interval)
+		document.getElementById("lightbox_buttonstopbar").style.display = "block"
+		document.getElementById("lightbox_slideshowbtnoff").style.display = "none"
 	}
 }
 
-//opens side panel preview which is basically just smaller, portable single media view
-function sidepanelpreviewer() {
-	document.getElementById("bigviewbox").style.display = "none"
-	document.getElementById("menu").style.display = "block"
-	document.getElementById("maingridview").style.display = "block"
-	document.getElementById("mediagrid").style.width = "" + (100 - sidepanelwidth) + "%"
-	document.getElementById("sidepreviewpanel").style.width = "" + sidepanelwidth + "%"
-	document.getElementById("sidepreviewpanel").style.display = "block"
-	sidepreviewpanelactive = true
-	document.getElementById("spp_lightboxbtnparent").innerHTML = "<input type='button' onclick='bigviewer(" + insidepanelpreview + ")' value='Fullscreen' title='Open file in Lightbox' id='spp_lightboxbtn' />"
-	document.getElementById("spp_editbtnparent").innerHTML = "<input type='button' onclick='inmediaedit = " + insidepanelpreview + "; editmedia()' value='Edit' title='Open file in edit mode' id='spp_editbtn' />"
-	var disp_linktags = ""
-		var filetagslen = testarray[insidepanelpreview][7].length
-		for (var i = 0; i < filetagslen; i++) {
-			if (i === filetagslen - 1) {
-				disp_linktags += testarray[insidepanelpreview][7][i]
+// Adds uploaded files to QMV JSON
+function file_add(name, size, type) {
+	//console.log(size) //in the future use size in file data info
+	var last_file = loaded_qmv.quomediaviewdb[3].qmv_files.length - 1
+	var next_available_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[last_file])[0] * 1 + 1
+	var default_folder = 1
+	var border_tag = ""
+	var file_type_extension = type.split("/")
+	if (file_type_extension[1] === "gif" || file_type_extension[1] === "apng") {
+		border_tag = "a2"
+	} else {
+		if (file_type_extension[0] === "image") {
+			border_tag = "a1"
+		} else if (file_type_extension[0] === "video") {
+			border_tag = "a3"
+		}
+	}
+	if (border_tag === "a1" || border_tag === "a2" || border_tag === "a3") {
+		tags_changer("tag",border_tag,"count_plus")
+	}
+	var qmv_json_filestring = '{"' + next_available_id + '":[{"name":["' + name + '","' + default_folder + '"]},{"tags":["' + border_tag
+	var file_extension_id = return_tag_id(file_type_extension[1])
+	if (file_extension_id !== undefined) {
+		qmv_json_filestring += '","' + file_extension_id
+		tags_changer("tag",file_extension_id,"count_plus")
+	}
+	qmv_json_filestring += '"]}]}'
+	var qmv_json_fileobject = JSON.parse(qmv_json_filestring)
+	loaded_qmv.quomediaviewdb[3].qmv_files.push(qmv_json_fileobject)
+}
+
+// Moves to next, previous or other files
+function file_switch(action, viewingmode) {
+	switch (action) {
+		case "previous":
+			if (current_file !== 0) {
+				current_file -= 1
+			}
+			break;
+		case "next":
+			if (current_file !== search_results.length - 1) {
+				current_file += 1
+			}
+			break;
+		case "random":
+			var maxselect = search_results.length
+			var selected_number = Math.floor(Math.random() * maxselect)
+			if (selected_number === current_file) {
+				file_switch('random', viewingmode)
 			} else {
-				disp_linktags += testarray[insidepanelpreview][7][i] + ","
+				current_file = selected_number * 1
+			}
+	}
+	file_viewer(viewingmode)
+}
+
+// Changes every tag detail in tagsedit view
+function tags_changer(grouportag,id,action) {
+	var taggroups_length = loaded_qmv.quomediaviewdb[2].qmv_tags.length
+	for (var i = 0; i < taggroups_length; i++) {
+		var group_id = Object.keys(loaded_qmv.quomediaviewdb[2].qmv_tags[i])[0]
+		if (action === "create" || action === "quickcreate") {
+			if (grouportag === "group") {
+				var last_group = loaded_qmv.quomediaviewdb[2].qmv_tags.length - 1
+				var last_group_id = Object.keys(loaded_qmv.quomediaviewdb[2].qmv_tags[last_group])[0]
+				var groupidcount = last_group_id.split("-")
+				var new_group_id = "group-" + (groupidcount[1] * 1 + 1)
+				var group_letters = "abcdefghijklmnopqrstuvwxyz".split("")
+				var new_group_string = '{"' + new_group_id + '":[{"settings":["' + new_group_id + '-name","inherit","show","' + (group_letters[(groupidcount[1] * 1 + 1) - 1] + "_0") + '"]},{"tags":[]}]}'
+				var new_group_object = JSON.parse(new_group_string)
+				loaded_qmv.quomediaviewdb[2].qmv_tags.push(new_group_object)
+				break;
 			}
 		}
-	var singlemvpath = "quomediaview.html#qmv_smv#" + baselocation + testarray[insidepanelpreview][1] + testarray[insidepanelpreview][2] + "#" + disp_linktags
-	if (testarray[insidepanelpreview][8] !== "") {
-		singlemvpath += "#" + testarray[insidepanelpreview][8]
-	}
-	document.getElementById("spp_newtablink").href = singlemvpath
-	var filepath = baselocation + testarray[insidepanelpreview][1] + testarray[insidepanelpreview][2]
-	var filetype = testarray[insidepanelpreview][5]
-	if (filetype === "video") {
-		document.getElementById("sppmediabox").innerHTML = "<video src='" + filepath + "' id='sppmainmedia' class='bigmainmedia' controls>Your browser can not display videos</video>"
-	} else {
-		document.getElementById("sppmediabox").innerHTML = "<img src='" + filepath + "' id='sppmainmedia' class='bigmainmedia'/>"
-	}
-	document.getElementById("sppinfoname").innerHTML = testarray[insidepanelpreview][2]
-	document.getElementById("sppinfolocation").innerHTML = baselocation + testarray[insidepanelpreview][1]
-	document.getElementById("sppinfodescription").innerHTML = testarray[insidepanelpreview][8]
-	
-	var filetypes = testarray[insidepanelpreview][2].split(".")
-	var filetypeslen = filetypes.length
-	var filetypelast = filetypes[filetypeslen - 1].toLowerCase()
-	if (filetypelast === "mp4" || filetypelast === "webm" || filetypelast === "ogg") {
-		document.getElementById("sppinfodetails").innerHTML = ""
-	} else {
-		document.getElementById("sppinfodetails").innerHTML = "Width: " + document.getElementById("sppmainmedia").naturalWidth + "<br />"
-		document.getElementById("sppinfodetails").innerHTML += "Height: " + document.getElementById("sppmainmedia").naturalHeight
-	}
-	document.getElementById("sppinfotags").innerHTML = disp_linktags.replaceAll(',', ', ').replaceAll('_', ' ')
-	document.getElementById("sppinfofullpath").innerHTML = document.getElementById("sppmainmedia").currentSrc.replace("%20"," ")
-}
-
-//closes side panel preview
-function sidepanelpreview_close() {
-	document.getElementById("mediagrid").style.width = "100%"
-	document.getElementById("sidepreviewpanel").style.display = "none"
-	sidepreviewpanelactive = false
-}
-
-//goes to previous media
-function spp_prev() {
-	if (insidepanelpreview !== 0) {
-		insidepanelpreview -= 1
-		sidepanelpreviewer()
-	}
-}
-
-//goes to next media
-function spp_next() {
-	if(insidepanelpreview !== testarray.length - 1) {
-		insidepanelpreview += 1
-		sidepanelpreviewer()
-	}
-}
-
-//changes selected left mouse click mode
-function leftmclickswitcher(selectedmode) {
-	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
-	for (var i = 0; i < settingslen; i++) {
-		if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "leftmclick") {
-			switch (selectedmode) {
-				case "sidepreviewpanel":
-					globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick = "sidepreviewpanel"
-					leftmclick = "sidepreviewpanel"
-					break;
-				case "lightbox":
-					globaldb.quomediaviewdb[0].qmv_settings[i].leftmclick = "lightbox"
-					leftmclick = "lightbox"
-					break;
+		if (action === "name" && group_id === id) {
+			loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[0] = document.getElementById(id + "_n").value.replaceAll(" ","_")
+		}
+		if (action === "color" && group_id === id) {
+			loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[1] = document.getElementById(id + "_c").value
+		}
+		if (action === "showhide" && group_id === id) {
+			if (document.getElementById(id + "_h").checked === true) {
+				loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[2] = "hide"
+			} else {
+				loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[2] = "show"
 			}
 		}
-	}
-}
-
-//catches the left mouse click and redirects it to selected lmc mode
-function lmouseclickredirect(mediaarrayid) {
-	switch (leftmclick) {
-		case "sidepreviewpanel":
-			insidepanelpreview = mediaarrayid
-			sidepanelpreviewer()
+		if (action === "delete" && group_id === id) {
+			loaded_qmv.quomediaviewdb[2].qmv_tags.splice(i,1)
 			break;
-		case "lightbox":
-			inbigview = mediaarrayid
-			bigviewer(mediaarrayid)
-			break;
-	}
-}
-
-//changes selected search results view mode
-function resultsviewmodewitch(selectedmode) {
-	var settingslen = globaldb.quomediaviewdb[0].qmv_settings.length
-	for (var i = 0; i < settingslen; i++) {
-		if (Object.keys(globaldb.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
-			switch (selectedmode) {
-				case "gridview":
-					globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "gridview"
-					resultsviewmode = "gridview"
-					break;
-				case "listview":
-					globaldb.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "listview"
-					resultsviewmode = "listview"
-					break;
+		}
+		if (grouportag === "tag") {
+			var group_tags_length = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags.length
+			if (group_tags_length === 0) {
+				group_tags_length += 1
 			}
-			searching(document.getElementById('searchbar').value)
+			for (var j = 0; j < group_tags_length; j++) {
+				if (action !== "create" && action !== "quickcreate") {
+					var tag_id = Object.keys(loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j])[0]
+				}
+				if (action === "create" || action === "quickcreate") {
+					if (id === group_id) {
+						var lettercount = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[3].split("_")
+						var new_tag_id = lettercount[0] + (lettercount[1] * 1 + 1)
+						loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[3] = lettercount[0] + "_" + (lettercount[1] * 1 + 1)
+						var new_tag_name = ""
+						if (action === "quickcreate") {
+							new_tag_name = document.getElementById(id + "_qc").value.replaceAll(" ","_")
+						}
+						var new_tag_string = '{"' + new_tag_id  + '":[0,"' + new_tag_name + '"]}'
+						var new_tag_object = JSON.parse(new_tag_string)
+						loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags.push(new_tag_object)
+						break;
+					}
+				}
+				if (action === "name" && tag_id === id) {
+					loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][1] = document.getElementById(id + "_tn").value.replaceAll(" ","_")
+				}
+				if (action === "count_plus" && tag_id === id) {
+					loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][0] += 1
+				}
+				if (action === "count_minus" && tag_id === id) {
+					loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][0] -= 1
+				}
+				if (action === "description" && tag_id === id) {
+					if (document.getElementById(id + "_td").value === "") {
+						loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id].splice(2,1)
+					} else {
+						loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id][2] = document.getElementById(id + "_td").value
+					}
+				}
+				if (action === "delete" && tag_id === id) {
+					loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags.splice(j,1)
+					break;
+				}
+			}
 		}
 	}
+	warn_changes_made()
+	render_tags("")
 }
