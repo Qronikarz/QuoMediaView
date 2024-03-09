@@ -12,7 +12,9 @@ Portable offline media tagging board inspired by booru sites.
 * No frameworks used - Pure/Vanilla JavaScript, HTML5 and CSS3
 
 # Current update focus
-QMV v1.2 - File details update - size, resolution, framerate, duration. Expected breakage to QMV JSON code. Sponsored by not having portable file browser that reads video duration.
+WARNING, decided to switch to pre-release versioning as I will be testing various ideas and everything is expected to break. New 1.0 version will come after all current issues and features are fixed/added. Use current versions without any warranty that they'll be able to update.
+
+QMV v0.3 - File details update - size, resolution, framerate, duration. Need of manual fixing of QMV JSON. Sponsored by not having portable file browser that reads video duration.
 For even more future plans visit QuoMediaView GitHub Issues
 
 # Compatibility requirements
