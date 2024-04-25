@@ -12,7 +12,8 @@ Portable offline media tagging board inspired by booru sites.
 * No frameworks used - Pure/Vanilla JavaScript, HTML5 and CSS3
 
 # Current update focus
-WARNING, decided to switch to pre-release versioning as I will be testing various ideas and everything is expected to break. New 1.0 version will come after all current issues and features are fixed/added. Use current versions without any warranty that they'll be able to update.
+> [!CAUTION]
+> No warranty given. Current version works, but the data from it will not work in new update without manual editing of JSON code. That's why I'm switching back to pre-relase and it will get a new 1.0 version only when I am certain no future breaking will occur. If you are happy with what this program currently offers you're free to use it, but updates will be tricky if even possible.
 
 QMV v0.3 - File details update - size, resolution, framerate, duration. Need of manual fixing of QMV JSON. Sponsored by not having portable file browser that reads video duration.
 For even more future plans visit QuoMediaView GitHub Issues
@@ -28,6 +29,9 @@ It should also work on other Operating Systems such as macOS, iOS, BSD and Andro
 
 # Why was it created?
 Two main things at the time: wanting to have one image in many folders that describe what is on the image and .webp format which windows 7 didn't support. Adding to that was also the need to open .gif files and videos in different apps. Due to no patience with running a server with already existing projects it was decided to make my own media tagging board inspired by anime fanart sites. It needed to be portable on USB, don't require setting up any servers and be easy to use.
+
+# Alternatives
+I remade my notes about tagging and programs that use tags for public use. There are many alternatives that offer similar features like QMV. Check https://github.com/Qronikarz/TagsResearch for more.
 
 # Installing
 1. Download the files
