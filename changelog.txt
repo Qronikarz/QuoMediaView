@@ -1,4 +1,26 @@
-QMV 1.1 - 
+QMV 0.3 - 2024.05.30
+Small update with few QoL features, changing versioning to pre-release to indicate breaking of data in future versions
+
+New Features:
++ Block list words are now saved and loaded to/from JSON
++ Page number now shows number of total pages
++ Exporting search query to text in readable format for backup purposes
+
+Changes:
++ Rewritten settings reset function for less code
++ Divided loading function into few parts to reuse it
++ Rewritten qmv update and function reset for less code
++ Tag count is now in form of " | N" instead of " (N)"
++ Reverted default max files in one page back to 28
+
+Bugfixes:
++ Single file view inputs had wrong style name and weren't short
++ Rotated media in lightbox view were overlaying the toolbar making it inaccessible
++ Clicking on dark/light mode symbols changed theme but didn't change the radio checkmark
+
+-_-_-_-_-_-_-
+
+QMV 1.1 - 2023.09.04
 Smaller updates, fixes and features gathered since release. Total rewrite of nearly every function but with the same functionality. No breaking changes to QMV JSON structure.
 
 New features:
