@@ -89,7 +89,7 @@
 					<label for="sidesetting_baselocation">Virtual location:</label><br />
 					<input type="text" id="sidesetting_baselocation" value="" onchange="settings_changer('baselocation')" /><br /><br />
 
-					<input type="button" onclick="settings_reset()" value="Reset default settings" />
+					<input type="button" onclick="settings_default('all')" value="Reset default settings" />
 				</div>
 
 				<div id="singlefileview_infobox" class="no_display_on_start">
@@ -165,12 +165,14 @@
 			<div id="qmvinfostats" class="mainviewsection no_display_on_start">
 				<input type="button" onclick="section_close('generalexit')" value="Close" /><br /><br />
 				<div id="qmv_info_logo"><img src="qmvfiles/quomediaview.svg" alt="QuoMediaView logo" id="qmv_info_logo_svg" />MV</div>
-				QuoMediaView v1.1<br /><br />
+				QuoMediaView v0.3<br /><br />
 				<input type="button" onclick="section_open('tagsedit')" value="Edit tags" /><br />
 				<input type="file" onchange="file_upload()" id="file_uploader" multiple /><label for="file_uploader"> - Add new files</label><br />
-				<input type="button" onclick="tagsorter()" value="Sort tags in every group" /><br />
+				<input type="button" onclick="tagsorter()" value="Sort tags in every group" /><br /><br />
 				<input type="button" onclick="export_qmv('empty')" value="Export empty QMV data" /><input type="button" onclick="export_qmv('current')" value="Export current QMV data" /><br />
-				<input type="text" id="qmv_json_export_holder" /><hr />
+				<input type="text" id="qmv_json_export_holder" /><br /><br />
+				<input type="button" onclick="export_searchquery()" value="Export search query" /><br />
+				<textarea id="qmv_searchquery_text_holder"></textarea><hr />
 				<div id="qmv_data_stats">
 					QMV data version: <span id="qmv_stats_version"></span><br />
 					QMV data creation date: <span id="qmv_stats_data"></span><br />
@@ -188,7 +190,7 @@
 			<div id="searchresults" ondrop="item_drop(event)" ondragover="item_drag(event)" class="mainviewsection">
 				<div id="searchresults_main">
 					<div id="qmvloadingsection">
-						<form autocomplete="off" id="qmvjsonload" onsubmit="loading(); return false">
+						<form autocomplete="off" id="qmvjsonload" onsubmit="loading('start'); return false">
 							Load QuoMediaView JSON data: <input type="text" id="qmvjson_loadinput" /><input type="submit" value="→" />
 						</form>
 						<input type="button" onclick="document.getElementById('qmvjson_loadinput').value = qmvdbtemplate; loading()" value="Load empty QuoMediaView DB" />
