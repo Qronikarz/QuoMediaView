@@ -5,57 +5,82 @@ P1. Main (before loading data):
 
 P2. Main (after loading data):
 
-	SW1. Search results (grid or list)
-		- media thumbnails (plus name and type in list)
+	SW1. Search results (grid view or list view)
+		- item thumbnails (plus name and type in list view)
 			+ Side panel preview or Lightbox (left click) (open side panel preview or go to SW3.)
-			+ Single file view (middle mouse click, right mouse click) (go to P3.)
+			+ Single item view (middle mouse click, right mouse click) (go to P3.)
 		- pagination
 			+ first page
 			+ previous page
-			+ curent page with clickable page number select input
+			+ current page
+				* curent page number
+				* clickable page number select input
+				* number of all pages
 			+ next page
 			+ last page
 		- side panel preview (default left mouse click)
+			+ buttons bar
+				* close button
+				+ previous item button
+				+ next item button
+				+ random item button
+				+ new tab shortcut (go to P3.)
+				+ lightbox shortcut (go to SW3.)
+				+ edit item shortcut (go to SW6.)
+			+ item display
+			+ item info section
+				* relative file path with name and extension
+				* item description
+				* item tags
+				* item details
+					*- width
+					*- height
+				* current file path that browser sees
 
 	SW2. Menu
-		- QMV logo
+		- QMV logo with search all function
 		- menu controls
-			+ search box with search button
+			+ search 
+				* search box
+				* clear search box button
+				* search button
 			+ options button (go to SW4.)
 		- tags list
 			+ tag groups
 				* tags
-					** block tag shortcut icon
-					** search tag shortcut with tag count
-					** description info icon
+					*- block tag shortcut icon
+					*- search tag shortcut with tag count
+					*- tag description info icon link
 
 	SW3. Lightbox
 		- buttons bar
 			+ close button (go to SW1.)
-			+ previous media button
-			+ next media button
+			+ previous item button
+			+ next item button
+			+ random item button
 			+ new tab shortcut (go to P3.)
 			+ side panel shortcut (go to SW1. with side panel preview opened)
-			+ edit file shortcut (go to SW6.)
+			+ edit item shortcut (go to SW6.)
 			+ slide show button
 			+ random slide show button
 			+ tools bar:
 				* rotate left
 				* rotate right
-		- media display
+		- item display
 
 	SW4. Settings menu
 		- blocklist
-			+ blocked tags
+			+ blocked tag with remove button
 		- close settings button (go to SW2.)
+		- QMV Info Stats button (go to SW7.)
 		- theme switch
 			+ dark mode
 			+ light mode
 		- thumbnails switch
 		- aspect ratio switch
 		- preload files switch
-		- thumbnails size switch
-		- max files on one page
+		- thumbnails size range input
+		- max files on one page number input
 		- tag info description icon
 		- side panel preview size
 		- left click mode switch
@@ -63,23 +88,19 @@ P2. Main (after loading data):
 			+ Lightbox
 		- search bar color
 		- blocklist color
-		- picture border color
-		- animation border color
-		- video border color
+		- item border colors
+			+ picture border color
+			+ animation border color
+			+ video border color
 		- search results view mode switch
 			+ grid
 			+ list
 		- virtual location input
-		- edit tags button (go to SW5.)
-		- add new files input button (go to SW6.)
-		- sort tags button
-		- default settings reset button
-		- new empty qmv db button
-		- current qmv db button
-		- text input holding results of two previous buttons
+		- reset default settings button
 
 	SW5. Tags edit view
 		- close button (go to SW1.)
+		- new tag group button
 		- tags edit
 			+ tag groups
 				* tag group name input
@@ -87,21 +108,20 @@ P2. Main (after loading data):
 				* tag group hide switch
 				* delete tag group button
 				* tags list
-					** tag row
-						*** tag name input
-						*** tag description input
-						*** tag delete button
-					** new tag button
-		- new tag group button
+					*- tag row
+						*+ tag name input
+						*+ tag description input
+						*+ tag delete button
+					*- new tag button
 
 	SW6. File edit view
 		- buttons bar
 			+ close button (go to SW1.)
-			+ previous media button
-			+ next media button
-			+ image delete button
-		- media display
-		- image settings
+			+ previous item button
+			+ next item button
+			+ item delete button
+		- item display
+		- item settings
 			+ main image
 				* folder
 				* file name
@@ -111,21 +131,46 @@ P2. Main (after loading data):
 				* file name
 				* file input
 			+ description input
+		- item tags with remove function
 		- new tag group quick add button
 		- tag search adding input
-		- tag settings
+		- all tags list
 			+ tag groups
 				* tags
 				* new tag quick add input
 
+	SW7. QMV Info Stats view
+		- QMV logo
+		- QMV version
+		- Options area
+			+ edit tags button (go to SW5.)
+			+ upload new files button (go to SW6.)
+			+ sort tags button
+			+ new empty qmv db button
+			+ current qmv db button
+			+ text input holding results of two previous buttons
+			+ search query export button
+			+ text area for result of above button
+		- Info area
+			+ QMV JSON version
+			+ QMV JSON creation date
+			+ number of tags
+			+ number of tag groups
+			+ number of items
+			+ number of browser compatible files
+		- Website link
+		- Changelog link
+		- License link
+
 P3. Singlemediaview
 	- menu
 		+ QMV logo
-		+ file info section
+		+ dark/light mode switch
+		+ item info section
 			* relative file path
-			* file description
-			* file tags
-			* file details
+			* item description
+			* item tags
+			* item details
 				** width
 				** height
 			* current file path that browser sees
@@ -137,4 +182,4 @@ P3. Singlemediaview
 			* hue-rotate input
 			* invert input
 			* saturate input
-	- media display
+	- item display
