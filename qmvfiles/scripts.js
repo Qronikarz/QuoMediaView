@@ -1,9 +1,9 @@
 // Paste your QuoMediaView JSON string in quotes below for automatic loading on start (remember to keep a backup and save changes):
 var qmv_data_autoload_holder = ''
-//var qmv_autoload_holder = '' // 2nd loader for quicker switching in testing
+//var qmv_data_autoload_holder = '' // 2nd loader for quicker switching in testing
 
 // Empty QuoMediaView JSON string template
-var qmv_data_template = '{"quomediaviewdb":[{"qmv_settings":[{"customthumbnails":true},{"maxshownresults":"32"},{"infoicon":"&#x2609;"},{"searchbar":"#90ee90"},{"blocklist":"#ffc0cb"},{"b_picture":"#808080"},{"b_animated":"#ffa500"},{"b_video":"#0000ff"},{"version":"1.0"},{"baselocation":""},{"chosentheme":"ultradark"},{"filethumbaspectratio":true},{"filethumbsize":192},{"sidepanelwidth":36},{"leftmouseclick":"sidepanelpreview"},{"previewresults":true},{"resultsviewmode":"gridview"}]},{"qmv_folders":[{"0":""}]},{"qmv_tags":[{"group-1":[{"settings":["bordergridtags","#008000","show","a_3"]},{"tags":[{"a1":[0,"picture"]},{"a2":[0,"animation"]},{"a3":[0,"video"]}]}]},{"group-2":[{"settings":["filetypetags","#87ceeb","show","b_6"]},{"tags":[{"b1":[0,"jpeg"]},{"b2":[0,"png"]},{"b3":[0,"webp"]},{"b4":[0,"gif"]},{"b5":[0,"webm"]},{"b6":[0,"mp4"]}]}]},{"group-3":[{"settings":["filetechtags","#d3d3d3","show","c_1"]},{"tags":[{"c1":[0,"audio"]}]}]}]},{"qmv_files":[]}]}'
+var qmv_data_template = '{"quomediaviewdb":[{"qmv_settings":[{"customthumbnails":true},{"maxshownresults":28},{"infoicon":"&#x2609;"},{"searchbar":"#90ee90"},{"blocklist":"#ffc0cb"},{"b_picture":"#808080"},{"b_animated":"#ffa500"},{"b_video":"#0000ff"},{"baselocation":""},{"chosentheme":"ultradark"},{"filethumbaspectratio":true},{"filethumbsize":192},{"sidepanelwidth":36},{"leftmouseclick":"sidepanelpreview"},{"previewresults":true},{"resultsviewmode":"gridview"},{"version":"1.0"},{"blockedtags":[]}]},{"qmv_folders":[{"0":""}]},{"qmv_tags":[{"group-1":[{"settings":["bordergridtags","#008000","show","a_3"]},{"tags":[{"a1":[0,"picture"]},{"a2":[0,"animation"]},{"a3":[0,"video"]}]}]},{"group-2":[{"settings":["filetypetags","#87ceeb","show","b_6"]},{"tags":[{"b1":[0,"jpeg"]},{"b2":[0,"png"]},{"b3":[0,"webp"]},{"b4":[0,"gif"]},{"b5":[0,"webm"]},{"b6":[0,"mp4"]}]}]},{"group-3":[{"settings":["filetechtags","#d3d3d3","show","c_1"]},{"tags":[{"c1":[0,"audio"]}]}]}]},{"qmv_files":[]}]}'
 
 // Settings section
 var maxshownresults = 32 // How many files are displayed on one page
@@ -24,7 +24,7 @@ var filethumbordersize = 2 // Thumbnail border size //hidden - not in the settin
 var loaded_qmv = "" // Stores loaded and parsed QMV JSON data
 var tags_collection = [] // All tags with ID, names, file count and descriptions
 var search_results = [] // Stores files that matched the search
-var blocked_tags_ids = [] // Persistent blocklist for tag ids //currently not saved in QMV JSON
+var blocked_tags_ids = [] // Persistent blocklist for tag ids
 var rotation_value = 0 // Keeping the rotation value when using buttons to rotate - 2 clicks on 90deg left = 180deg left
 var current_file = 0 // Current file in all section views
 var current_page = 1 // Current page in results view
@@ -37,15 +37,17 @@ if (decodeURI(window.location).search("qmv_mode=singlefileview") !== -1) {
 	section_open("singlefileview")
 } else if (qmv_data_autoload_holder !== "") {
 	document.getElementById("qmvjson_loadinput").value = qmv_data_autoload_holder
-	loading()
+	loading("start")
 }
 
 // Loads QMV JSON string with settings and other needed things
-function loading() {
-	var loaddata = document.getElementById("qmvjson_loadinput")
-	loaded_qmv = JSON.parse(loaddata.value)
-	document.getElementById("qmv_json_export_holder").value = ""
-	qmvsettings_updater()
+function loading(state) {
+	if (state === "start") {	
+		var loaddata = document.getElementById("qmvjson_loadinput").value
+		loaded_qmv = JSON.parse(loaddata.trim())
+		document.getElementById("qmv_json_export_holder").value = ""
+		qmv_updater()
+	}
 	//loading settings
 	var settingslen = loaded_qmv.quomediaviewdb[0].qmv_settings.length
 	for (var i = 0; i < settingslen; i++) {
@@ -132,20 +134,24 @@ function loading() {
 			case "creationdate":
 				document.getElementById("qmv_stats_data").innerHTML = loaded_qmv.quomediaviewdb[0].qmv_settings[i].creationdate
 				break;
+			case "blockedtags":
+				blocked_tags_ids = loaded_qmv.quomediaviewdb[0].qmv_settings[i].blockedtags
 		}
 	}
-	var folders_length = loaded_qmv.quomediaviewdb[1].qmv_folders.length
-	for (var i = 0; i < folders_length; i++) {
-		var folderid = Object.keys(loaded_qmv.quomediaviewdb[1].qmv_folders[i])
-		document.getElementById("qmv_available_folders_list").innerHTML += "<option value='" + loaded_qmv.quomediaviewdb[1].qmv_folders[i][folderid] + "'></option>"
-	}
 	thumbnails_styling()
-	document.getElementById("functionless_logo").style.display = "none"
-	document.getElementById("qmv_logo").style.display = "inline"
-	document.getElementById("menu_controls").style.display = "block"
-	document.getElementById("searchresults_main").removeChild(document.getElementById("qmvloadingsection"))
-	document.getElementById("searchresults_pagination").style.display = "block"
-	render_tags("start")
+	if (state === "start") {
+		var folders_length = loaded_qmv.quomediaviewdb[1].qmv_folders.length
+		for (var i = 0; i < folders_length; i++) {
+			var folderid = Object.keys(loaded_qmv.quomediaviewdb[1].qmv_folders[i])
+			document.getElementById("qmv_available_folders_list").innerHTML += "<option value='" + loaded_qmv.quomediaviewdb[1].qmv_folders[i][folderid] + "'></option>"
+		}
+		document.getElementById("functionless_logo").style.display = "none"
+		document.getElementById("qmv_logo").style.display = "inline"
+		document.getElementById("menu_controls").style.display = "block"
+		document.getElementById("searchresults_main").removeChild(document.getElementById("qmvloadingsection"))
+		document.getElementById("searchresults_pagination").style.display = "block"
+		render_tags("start")
+	}
 }
 
 // Renders tags in 3 places - menu, filesedit and tagsedit
@@ -192,7 +198,7 @@ function render_tags(action) {
 			tag_array_holder.push(tag_id, tag_name, tag_count, color, tag_description)
 			tags_collection.push(tag_array_holder)
 			if (loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][0].settings[2] === "show") {
-				list_holder += "<li><span class='menu_tag_link' style='color:" + color + "'><a href='' onclick='blocklisting(\"" + tag_id + "\",\"add\"); return false'>[-]</a> <a href='' onclick='document.getElementById(\"searchbar\").value += \"" + tag_name + " \"; return false'>" + tag_name.replaceAll("_", " ") + " (" + tag_count + ")</a>"
+				list_holder += "<li><span class='menu_tag_link' style='color:" + color + "'><a href='' onclick='blocklisting(\"" + tag_id + "\",\"add\"); return false'>[-]</a> <a href='' onclick='document.getElementById(\"searchbar\").value += \"" + tag_name + " \"; return false'>" + tag_name.replaceAll("_", " ") + " | " + tag_count + "</a>"
 				var tag_data_length = loaded_qmv.quomediaviewdb[2].qmv_tags[i][group_id][1].tags[j][tag_id].length
 				if (tag_data_length === 3 && tag_description !== "") {
 					list_holder += " <a href='' onclick='tag_info_show(\"" + tag_id + "\"); return false'>" + infoicon + "</a></span></li>"
@@ -208,11 +214,11 @@ function render_tags(action) {
 		file_tags_holder += "</span>"
 		tags_edit_holder += "<br /><br /></div><br />"
 	}
-	// Loading blocklist from js variable //in future from QMV JSON
+	// Loading blocked tags
 	document.getElementById("blocklist").innerHTML = ""
-	blocklist_length = blocked_tags_ids.length
-	for (var k = 0; k < blocklist_length; k++) {
-		blocklisting(blocked_tags_ids[k],"load")
+	blocked_tags_ids_length = blocked_tags_ids.length
+	for (var j = 0; j < blocked_tags_ids_length; j++) {
+		blocklisting(blocked_tags_ids[j],"load")
 	}
 	document.getElementById("tags_list").innerHTML = list_holder
 	document.getElementById("filesedit_tagcellsbox").innerHTML = file_tags_holder
@@ -372,7 +378,12 @@ function blocklisting(tag_id,state) {
 	switch (state) {
 		case "add":
 			if (!blocked_tags_ids.includes(tag_id)) {
-				blocked_tags_ids.push(tag_id)
+				var qmv_settings_length = loaded_qmv.quomediaviewdb[0].qmv_settings.length
+				for (var i = 0; i < qmv_settings_length; i++) {
+					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "blockedtags") {
+						loaded_qmv.quomediaviewdb[0].qmv_settings[i].blockedtags.push(tag_id)
+					}
+				}
 				searching(document.getElementById('searchbar').value)
 				blocklisting(tag_id,"load")
 			}
@@ -382,7 +393,12 @@ function blocklisting(tag_id,state) {
 			break;
 		case "remove":
 			var tag_id_place = blocked_tags_ids.indexOf(tag_id)
-			blocked_tags_ids.splice(tag_id_place,1)
+			var qmv_settings_length = loaded_qmv.quomediaviewdb[0].qmv_settings.length
+			for (var i = 0; i < qmv_settings_length; i++) {
+				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "blockedtags") {
+					loaded_qmv.quomediaviewdb[0].qmv_settings[i].blockedtags.splice(tag_id_place,1)
+				}
+			}
 			searching(document.getElementById('searchbar').value)
 			document.getElementById("blocklist").removeChild(document.getElementById("blocklist_" + tag_id))
 			break;
@@ -391,12 +407,13 @@ function blocklisting(tag_id,state) {
 
 // Renders the results in the main results view either in grid or list
 function render_results() {
-	document.getElementById("current_page").innerHTML = current_page
-	if (document.getElementById('searchbar').value === "") {
-		document.getElementById("pagetitle").innerHTML = document.getElementById('searchbar').value + "page " + current_page + " of " + Math.ceil(search_results.length / maxshownresults) + " (" + search_results.length + ") | QuoMediaView"
-	} else {
-		document.getElementById("pagetitle").innerHTML = document.getElementById('searchbar').value + " | page " + current_page + " of " + Math.ceil(search_results.length / maxshownresults) + " (" + search_results.length + ") | QuoMediaView"
+	document.getElementById("current_page").innerHTML = current_page + " of " + Math.ceil(search_results.length / maxshownresults)
+	document.getElementById("pagetitle").innerHTML = ""
+	// add search query to page title
+	if (document.getElementById('searchbar').value !== "") {
+		document.getElementById("pagetitle").innerHTML = document.getElementById('searchbar').value + " | "
 	}
+	document.getElementById("pagetitle").innerHTML += "page " + current_page + " of " + Math.ceil(search_results.length / maxshownresults) + " (" + search_results.length + ") | QuoMediaView"
 	document.getElementById("searchresults_main").innerHTML = ""
 	if (resultsviewmode === "listview") {
 		document.getElementById("searchresults_main").innerHTML = "<table id='resultslisttable'><thead><tr><th>Icon</th><th>File Name</th><th>Type</th></tr></thead><tbody id='resultstableinside'></tbody></table>"
@@ -1160,12 +1177,14 @@ function settings_changer(settchanged) {
 				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
 					loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
 					document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
+					document.getElementById("sidesetting_chosentheme_ultradark").checked = true
 				}
 				break;
 			case "chosentheme_lightlite":
 				if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
 					loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme = "lightlite"
 					document.getElementById("themingfile").href = "qmvfiles/theme_lightlite.css"
+					document.getElementById("sidesetting_chosentheme_lightlite").checked = true
 				}
 				break;
 			case "leftmouseclick_sidepanelpreview":
@@ -1200,99 +1219,36 @@ function settings_changer(settchanged) {
 }
 
 // Resets default settings
-function settings_reset() {
-	var settingslen = loaded_qmv.quomediaviewdb[0].qmv_settings.length
-	for (var i = 0; i < settingslen; i++) {
-		switch (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0]) {
-			case "customthumbnails":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].customthumbnails = true
-				customthumbnails = true
-				document.getElementById("sidesetting_customthumbnails").checked = customthumbnails
-				break;
-			case "maxshownresults":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].maxshownresults = 32
-				maxshownresults = 32
-				current_page = 1
-				document.getElementById("sidesetting_maxshownresults").value = maxshownresults
-				break;
-			case "infoicon":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].infoicon = "&#x2609;"
-				infoicon = "&#x2609;"
-				document.getElementById("sidesetting_infoicon").value = infoicon
-				break;
-			case "searchbar":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].searchbar = "#90ee90"
-				document.getElementById("easystylechange_searchbar").innerHTML = "#searchbar {background-color: " + "#90ee90" + "}"
-				document.getElementById("sidesetting_searchbar").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].searchbar
-				break;
-			case "blocklist":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].blocklist = "#ffc0cb"
-				document.getElementById("easystylechange_blocklist").innerHTML = "#blocklist {color: " + "#ffc0cb" + "}"
-				document.getElementById("sidesetting_blocklist").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].blocklist
-				break;
-			case "b_picture":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_picture = "#808080"
-				document.getElementById("easystylechange_b_picture").innerHTML = ".picture {border: 2px solid " + "#808080" + "}"
-				document.getElementById("sidesetting_b_picture").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_picture
-				break;
-			case "b_animated":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_animated = "#ffa500"
-				document.getElementById("easystylechange_b_animated").innerHTML = ".animated {border: 2px solid " + "#ffa500" + "}"
-				document.getElementById("sidesetting_b_animated").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_animated
-				break;
-			case "b_video":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_video = "#0000ff"
-				document.getElementById("easystylechange_b_video").innerHTML = ".video {border: 2px solid " + "#0000ff" + "}"
-				document.getElementById("sidesetting_b_video").value = loaded_qmv.quomediaviewdb[0].qmv_settings[i].b_video
-				break;
-			case "baselocation":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].baselocation = ""
-				baselocation = ""
-				document.getElementById("sidesetting_baselocation").value = baselocation
-				break;
-			case "chosentheme":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].chosentheme = "ultradark"
-				document.getElementById("themingfile").href = "qmvfiles/theme_ultradark.css"
-				document.getElementById("sidesetting_chosentheme_ultradark").checked = true
-				break;
-			case "filethumbaspectratio":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbaspectratio = true
-				filethumbaspectratio = true
-				document.getElementById("sidesetting_filethumbaspectratio").checked = true
-				break;
-			case "filethumbsize":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].filethumbsize = 192
-				filethumbsize = 192
-				document.getElementById("sidesetting_filethumbsize").value = 192
-				break;
-			case "sidepanelwidth":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].sidepanelwidth = 36
-				sidepanelwidth = 36
-				document.getElementById("sidesetting_sidepanelwidth").value = 36
-				if (document.getElementById("sidepanelpreview").style.display === "block") {
-					section_open("sidepanelpreview")
+function settings_default(setting) {
+	var qmv_default = JSON.parse(qmv_data_template)
+	default_settings_length = qmv_default.quomediaviewdb[0].qmv_settings.length
+	var settings_to_reset = [setting]
+	if (setting === "all") {
+		settings_to_reset = ["customthumbnails", "maxshownresults", "infoicon", "searchbar", "blocklist", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "filethumbaspectratio", "filethumbsize", "sidepanelwidth", "leftmouseclick", "previewresults", "resultsviewmode"]
+	}
+	settings_to_reset_length = settings_to_reset.length
+	for (var i = 0; i < settings_to_reset_length; i++) {
+		var setting_name = settings_to_reset[i]
+		for (var j = 0; j < default_settings_length; j++) {
+			if (setting_name === Object.keys(qmv_default.quomediaviewdb[0].qmv_settings[j])[0]) {
+				qmv_settings_length = loaded_qmv.quomediaviewdb[0].qmv_settings.length
+				for (var k = 0; k < qmv_settings_length; k++) {
+					if (setting_name === Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[k])[0]) {
+						loaded_qmv.quomediaviewdb[0].qmv_settings[k][setting_name] = qmv_default.quomediaviewdb[0].qmv_settings[j][setting_name]
+					}
 				}
-				break;
-			case "leftmouseclick":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].leftmouseclick = "sidepanelpreview"
-				leftmouseclick = "sidepanelpreview"
-				document.getElementById("sidesetting_leftmouseclick_sidepanelpreview").checked = true
-				break;
-			case "previewresults":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].previewresults = true
-				previewresults = true
-				document.getElementById("sidesetting_previewresults").checked = true
-				break;
-			case "resultsviewmode":
-				loaded_qmv.quomediaviewdb[0].qmv_settings[i].resultsviewmode = "gridview"
-				resultsviewmode = "gridview"
-				document.getElementById("sidesetting_resultsviewmode_gridview").checked = true
-				break;
+			}
 		}
 	}
-	searching(document.getElementById('searchbar').value)
-	thumbnails_styling()
-	warn_changes_made()
+	if (setting === "all") {
+		warn_changes_made()
+		loading("")
+		thumbnails_styling()
+		searching(document.getElementById('searchbar').value)
+		if (document.getElementById("sidepanelpreview").style.display === "block") {
+			section_open("sidepanelpreview")
+		}
+	}
 }
 
 // Exports the full QMV database in one line string for saving
@@ -1302,6 +1258,27 @@ function export_qmv(state) {
 	} else if (state === "current") {
 		document.getElementById("qmv_json_export_holder").value = JSON.stringify(loaded_qmv).replace("\\","")
 	}
+}
+
+// Exports search query to readable text for backup purposes or browsing the items and tags in text editor
+function export_searchquery() {
+	var export_holder = "ste QuoMediaView query:("
+	export_holder += document.getElementById('searchbar').value + ")\n"
+	search_results_length = search_results.length
+	for (var i = 0; i < search_results_length ; i++) {
+		var full_path = search_results[i][1] + search_results[i][2]
+		var linktags = ""
+		var tags_length = search_results[i][4].length
+		for (var j = 0; j < tags_length; j++) {
+			if (j === tags_length - 1) {
+				linktags += search_results[i][4][j]
+			} else {
+				linktags += search_results[i][4][j] + ","
+			}
+		}
+		export_holder += baselocation + full_path + " (" + linktags.replaceAll("_"," ").replaceAll(",",", ") + ")\n"
+	}
+	document.getElementById('qmv_searchquery_text_holder').innerHTML = export_holder
 }
 
 // Writes a combo of selected size and aspect ratio for styling the thumbnails
@@ -1328,211 +1305,45 @@ function thumbnails_styling() {
 }
 
 // Checks if qmv_settings in QMV JSON are up to date with all new features
-function qmvsettings_updater() {
-	var settingslen = loaded_qmv.quomediaviewdb[0].qmv_settings.length
-	var currentsettingslist = ["customthumbnails", "maxshownresults", "infoicon", "searchbar", "blocklist", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "filethumbaspectratio", "filethumbsize", "sidepanelwidth", "leftmouseclick", "previewresults", "resultsviewmode","version","creationdate"]
-	var currentsettingslistlen = currentsettingslist.length
-	for (var j = 0; j < currentsettingslistlen; j++) {
-		switch (currentsettingslist[j]) {
-			case "customthumbnails":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "customthumbnails") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"customthumbnails": true}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
+function qmv_updater() {
+	var update_settings = ["customthumbnails", "maxshownresults", "infoicon", "searchbar", "blocklist", "b_picture", "b_animated", "b_video", "baselocation", "chosentheme", "filethumbaspectratio", "filethumbsize", "sidepanelwidth", "leftmouseclick", "previewresults", "resultsviewmode", "version", "creationdate", "blockedtags"]
+	var update_settings_length = update_settings.length
+	for (var i = 0; i < update_settings_length; i++) {
+		var qmv_settings_length = loaded_qmv.quomediaviewdb[0].qmv_settings.length
+		var found_setting = false
+		for (var j = 0; j < qmv_settings_length; j++) {
+			if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[j])[0] === update_settings[i]) {
+				found_setting = true
+			} else if (j === qmv_settings_length - 1 && found_setting === false) {
+				switch (update_settings[i]) {
+					case "creationdate":
+						var date_string = new Date().toJSON().slice(0, 10)
+						var new_setting_string = '{"creationdate": "' + date_string + '"}'
+						var new_setting_object = JSON.parse(new_setting_string)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(new_setting_object)
+						break;
+					default:
+						var new_setting_string = '{"' + update_settings[i] + '":1}'
+						var new_setting_object = JSON.parse(new_setting_string)
+						loaded_qmv.quomediaviewdb[0].qmv_settings.push(new_setting_object)
+						settings_default(update_settings[i])
+						break;
 				}
-				break;
-			case "maxshownresults":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "maxshownresults") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"maxshownresults": 32}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "infoicon":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "infoicon") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"infoicon": "&#x2609;"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "searchbar":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "searchbar") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"searchbar": "#90ee90"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "blocklist":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "blocklist") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"blocklist": "#ffc0cb"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "b_picture":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_picture") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"b_picture": "#808080"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "b_animated":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_animated") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"b_animated": "#ffa500"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "b_video":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "b_video") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"b_video": "#0000ff"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "baselocation":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "baselocation") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"baselocation": ""}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "chosentheme":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "chosentheme") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"chosentheme": "ultradark"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;				
-			case "filethumbaspectratio":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "filethumbaspectratio") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"filethumbaspectratio": true}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "filethumbsize":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "filethumbsize") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"filethumbsize": 192}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "sidepanelwidth":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "sidepanelwidth") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"sidepanelwidth": 36}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;				
-			case "leftmouseclick":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "leftmouseclick") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"leftmouseclick": "sidepanelpreview"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "previewresults":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "previewresults") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"previewresults": true}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "resultsviewmode":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "resultsviewmode") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"resultsviewmode": "gridview"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "version":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "version") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var texttopush = JSON.parse('{"version": "1.0"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
-			case "creationdate":
-				var foundsetting = false
-				for (var i = 0; i < settingslen; i++) {
-					if (Object.keys(loaded_qmv.quomediaviewdb[0].qmv_settings[i])[0] === "creationdate") {
-						foundsetting = true
-					} else if (i === settingslen - 1 && foundsetting === false) {
-						var datestring = new Date().toJSON().slice(0, 10)
-						var texttopush = JSON.parse('{"creationdate": "' + datestring + '"}')
-						loaded_qmv.quomediaviewdb[0].qmv_settings.push(texttopush)
-					}
-				}
-				break;
+			}
+		}
+	}
+	
+	var update_json = ["qmv_settings", "qmv_folders", "qmv_tags", "qmv_files", "qmv_info", "qmv_collections"]
+	var update_json_length = update_json.length
+	for (var i = 0; i < update_json_length; i++) {
+		var qmv_json_objects_length = loaded_qmv.quomediaviewdb.length
+		var found_qmvobject = false
+		for (var j = 0; j < qmv_json_objects_length; j++) {
+			if (Object.keys(loaded_qmv.quomediaviewdb[j])[0] === update_json[i]) {
+				found_qmvobject = true
+			} //else if (j === qmv_json_objects_length - 1 && found_qmvobject === false) {
+				//console.log(update_json[i]) reserved for future version
+			//}
 		}
 	}
 }
@@ -1590,23 +1401,25 @@ function file_switch(action, viewingmode) {
 		case "previous":
 			if (current_file !== 0) {
 				current_file -= 1
+				file_viewer(viewingmode)
 			}
 			break;
 		case "next":
 			if (current_file !== search_results.length - 1) {
 				current_file += 1
+				file_viewer(viewingmode)
 			}
 			break;
 		case "random":
 			var maxselect = search_results.length
-			var selected_number = Math.floor(Math.random() * maxselect)
+			var selected_number = Math.floor(Math.random() * (maxselect + 1))
 			if (selected_number === current_file) {
 				file_switch('random', viewingmode)
 			} else {
 				current_file = selected_number * 1
+				file_viewer(viewingmode)
 			}
 	}
-	file_viewer(viewingmode)
 }
 
 // Changes every tag detail in tagsedit view
