@@ -48,7 +48,7 @@ html, body {
 	height: 100%;
 }
 
-#sidepanelpreview_fileinfo_tools input {
+#singlefileview_fileinfo_tools input {
 	max-width: 4em;
 }
 
@@ -62,6 +62,7 @@ html, body {
 	left: 0px;
 	top: 0px;
 	opacity: 0;
+	z-index: 20;
 }
 
 #lightbox_buttonstopbar:hover {
