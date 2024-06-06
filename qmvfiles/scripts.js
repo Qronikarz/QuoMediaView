@@ -850,6 +850,7 @@ function return_folder_id(path) {
 			var new_folder_string = '{"' + new_folder_number + '":"' + path + '"}'
 			var new_folder_object = JSON.parse(new_folder_string)
 			loaded_qmv.quomediaviewdb[1].qmv_folders.push(new_folder_object)
+			document.getElementById("qmv_available_folders_list").innerHTML += "<option value='" + path + "'></option>"
 			return new_folder_number
 		}
 	}
@@ -897,6 +898,7 @@ function file_upload() {
 	warn_changes_made()
 	section_close("generalexit")
 	render_tags("start")
+	section_open('filesedit')
 }
 
 // Manages every change to file data in filesedit view
@@ -1047,6 +1049,7 @@ function item_drop(droppeditems) {
 	}
 	warn_changes_made()
 	render_tags("start")
+	section_open('filesedit')
 }
 
 // Prevents openning dragged files by browser
@@ -1368,7 +1371,11 @@ function lightbox_slideshow(state, direction) {
 function file_add(name, size, type) {
 	//console.log(size) //in the future use size in file data info
 	var last_file = loaded_qmv.quomediaviewdb[3].qmv_files.length - 1
-	var next_available_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[last_file])[0] * 1 + 1
+	if (last_file === -1) {
+		var next_available_id = 0
+	} else {
+		var next_available_id = Object.keys(loaded_qmv.quomediaviewdb[3].qmv_files[last_file])[0] * 1 + 1
+	}
 	var default_folder = 1
 	var border_tag = ""
 	var file_type_extension = type.split("/")
